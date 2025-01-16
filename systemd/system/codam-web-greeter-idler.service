@@ -7,6 +7,8 @@ Type=oneshot
 Restart=no
 User=root
 Group=root
+Environment="DISPLAY=:0"
+Environment="XDG_SEAT_PATH=/org/freedesktop/DisplayManager/Seat0"
 ExecStart=/usr/bin/bash /usr/share/codam/codam-web-greeter-idler.sh
 
 [Install]
