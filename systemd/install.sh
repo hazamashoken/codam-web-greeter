@@ -30,6 +30,7 @@ fi
 /usr/bin/mkdir -p /usr/share/codam
 /usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-fetcher.sh" /usr/share/codam/codam-web-greeter-fetcher.sh
 /usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-idler.sh" /usr/share/codam/codam-web-greeter-idler.sh
+/usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-lockscreen.sh" /usr/share/codam/codam-web-greeter-lockscreen.sh
 /usr/bin/chmod 700 /usr/share/codam/codam-web-greeter-idler.sh
 /usr/bin/cp "$ROOT_DIR/user/codam-web-greeter-init.sh" /usr/share/codam/codam-web-greeter-init.sh
 /usr/bin/cp "$ROOT_DIR/user/codam-web-greeter-cleanup.sh" /usr/share/codam/codam-web-greeter-cleanup.sh
@@ -61,6 +62,8 @@ DATA_FILE="$WEB_GREETER_DIR/data.json"
 /usr/bin/cp "$ROOT_DIR/system/codam-web-greeter.timer" /etc/systemd/system/codam-web-greeter.timer
 /usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-idler.service" /etc/systemd/system/codam-web-greeter-idler.service
 /usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-idler.timer" /etc/systemd/system/codam-web-greeter-idler.timer
+/usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-lockscreen.service" /etc/systemd/system/codam-web-greeter-lockscreen.service
+/usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-lockscreen.timer" /etc/systemd/system/codam-web-greeter-lockscreen.timer
 
 # Install systemd user service
 /usr/bin/cp "$ROOT_DIR/user/codam-web-greeter.service" /etc/systemd/user/codam-web-greeter.service
@@ -74,6 +77,8 @@ DATA_FILE="$WEB_GREETER_DIR/data.json"
 /usr/bin/systemctl start codam-web-greeter.timer
 /usr/bin/systemctl enable codam-web-greeter-idler.timer
 /usr/bin/systemctl start codam-web-greeter-idler.timer
+/usr/bin/systemctl enable codam-web-greeter-lockscreen.timer
+/usr/bin/systemctl start codam-web-greeter-lockscreen.timer
 
 # Fetch data for the first time (in the background)
 /usr/bin/systemctl start codam-web-greeter.service &

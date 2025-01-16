@@ -14,6 +14,8 @@ fi
 /usr/bin/systemctl stop codam-web-greeter.timer
 /usr/bin/systemctl disable codam-web-greeter-idler.timer
 /usr/bin/systemctl stop codam-web-greeter-idler.timer
+/usr/bin/systemctl disable codam-web-greeter-lockscreen.timer
+/usr/bin/systemctl stop codam-web-greeter-lockscreen.timer
 
 # Disable systemd user service
 /usr/bin/systemctl --global disable codam-web-greeter.service
@@ -23,6 +25,8 @@ fi
 /usr/bin/rm /etc/systemd/system/codam-web-greeter.timer
 /usr/bin/rm /etc/systemd/system/codam-web-greeter-idler.service
 /usr/bin/rm /etc/systemd/system/codam-web-greeter-idler.timer
+/usr/bin/rm /etc/systemd/system/codam-web-greeter-lockscreen.service
+/usr/bin/rm /etc/systemd/system/codam-web-greeter-lockscreen.timer
 
 # Remove systemd user service
 /usr/bin/rm /etc/systemd/user/codam-web-greeter.service
