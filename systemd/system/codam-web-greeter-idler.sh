@@ -33,18 +33,6 @@ while IFS= read -r line; do
 		TIME_SINCE_LOCK=$((($(date +%s) - LOCKED_AT_TIMESTAMP) * 1000))
 	fi
 
-	# 42Singapore: Ad Hoc method to lockscreen idle user after 3 minutes
-	# if the screen blanks on the lock screen use '/usr/bin/dm-tool switch-to-greeter' instead: https://github.com/hazamashoken/codam-web-greeter/tree/main?tab=readme-ov-file#the-screen-blanks-on-the-lock-screen
-	# Check if session has been idle for long enough
-	MAX_IDLE_SCREENLOCK_TIME_MINUTES=$((3))
-	MAX_IDLE_SCREENLOCK_TIME=$((MAX_IDLE_SCREENLOCK_TIME_MINUTES * 60 * 1000))
-	if [ "$IDLE_TIME" -gt "$MAX_IDLE_SCREENLOCK_TIME" ] || [ "$TIME_SINCE_LOCK" -gt "$MAX_IDLE_SCREENLOCK_TIME" ]; then
-		/usr/bin/echo "Session for user $USERNAME has been idle for over 3 minutes (idletime $IDLE_TIME ms, time_since_lock $TIME_SINCE_LOCK ms), locking screen by running dm-tool lock"
-		/usr/bin/dm-tool lock
-	else
-		/usr/bin/echo "Session for $USERNAME has been idle for $((IDLE_TIME / 1000)) seconds, screen locked for $((TIME_SINCE_LOCK / 1000)) seconds"
-	fi
-
 	# Check if session has been idle for long enough
 	MAX_IDLE_TIME_MINUTES=$((42))
 	MAX_IDLE_TIME=$((MAX_IDLE_TIME_MINUTES * 60 * 1000))
