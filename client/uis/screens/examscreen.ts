@@ -32,7 +32,7 @@ export class ExamModeUI extends UIScreen {
 		},
 	};
 
-	public constructor(auth: Authenticator, loginUI: LoginScreenUI) {
+	public constructor(auth: Authenticator, loginUI: LoginScreenUI | APFLoginScreenUI) {
 		super(auth);
 
 		// Keep a reference to the login screen so that we can show it when the exam is over
