@@ -2,6 +2,7 @@ import { Authenticator, AuthenticatorEvents } from "../../auth";
 import { UIScreen, UIExamModeElements } from "../screen";
 import { LoginScreenUI } from "./loginscreen";
 import { ExamForHost } from "../../data";
+import { APFLoginScreenUI } from "./april-fool-loginscreen";
 
 export class ExamModeUI extends UIScreen {
 	public static readonly EXAM_USERNAME: string = 'exam';
@@ -10,7 +11,7 @@ export class ExamModeUI extends UIScreen {
 	public readonly _form: UIExamModeElements;
 	private _examMode: boolean = false;
 	private _examIds: number[] = [];
-	private _loginScreen: LoginScreenUI;
+	private _loginScreen: LoginScreenUI | APFLoginScreenUI;
 	protected _events: AuthenticatorEvents = {
 		authenticationStart: () => {
 			this._disableForm();

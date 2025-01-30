@@ -1,8 +1,7 @@
 import { Authenticator, AuthenticatorEvents } from '../../auth';
-import { UILoginElements } from '../screen';
-import { LoginScreenUI } from './loginscreen';
+import { UILoginElements, UIScreen } from '../screen';
 
-export class APFLoginScreenUI extends LoginScreenUI {
+export class APFLoginScreenUI extends UIScreen {
   public readonly _form: UILoginElements;
   protected _events: AuthenticatorEvents = {
     authenticationStart: () => {

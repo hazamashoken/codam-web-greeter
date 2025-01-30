@@ -15,7 +15,7 @@ export class UI {
 
 	private _infoBars: InfoBarsUI;
 	private _lockScreen: LockScreenUI | null = null;
-	private _loginScreen: LoginScreenUI | null = null;
+	private _loginScreen: LoginScreenUI | APFLoginScreenUI | null = null;
 	private _examModeScreen: ExamModeUI | null = null;
 	private _isLockScreen: boolean = false;
 	private _examModeDisabled: boolean = false; // Used to disable exam mode in case of admin override
