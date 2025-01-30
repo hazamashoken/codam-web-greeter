@@ -21,6 +21,13 @@
     font-style: normal
 }
 
+@font-face {
+    font-family: "Fira Sans";
+    src: url('../fonts/FiraSans-Regular.ttf') format("truetype");
+    font-weight: 400;
+    font-style: normal
+}
+
 #april-fool-form {
     width: 100%;
     max-width: 792px;
@@ -702,7 +709,7 @@
 }
 
 #april-fool-form .title-bar {
-    font-family: Trebuchet MS;
+    font-family: "Fira Sans", sans-serif;
     background: linear-gradient(180deg, #0997ff, #0053ee 8%, #0050ee 40%, #06f 88%, #06f 93%, #005bff 95%, #003dd7 96%, #003dd7);
     padding: 3px 5px 3px 3px;
     border-top: 1px solid #0831d9;
@@ -1249,11 +1256,11 @@ progress:not([value]):after,
 #april-fool-form #april-fool-login {
     display: grid;
     grid-template-columns: 20% 70%;
-    grid-template-rows: repeat(2, 35px);
-    gap: 5px;
+    grid-template-rows: repeat(2, 30px);
     padding: 10px;
-    margin-top: 20px;
-    margin-bottom: 10px;
+    padding-bottom: 10px;
+    padding-right: 30px;
+    padding-top: 20px;
 }
 
 #april-fool-form #april-fool-login label {
@@ -1274,4 +1281,8 @@ progress:not([value]):after,
 
 #april-fool-form .field-row button {
     margin: 4px;
+}
+
+#april-fool-form label > span {
+    text-decoration: underline;
 }
