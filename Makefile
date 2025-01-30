@@ -66,6 +66,7 @@ re:
 static/greeter.css:
 	echo "@import 'css/styles.css';" > "$(ROOT_DIR)/static/greeter.css"
 	echo "@import 'css/dark.css';" >> "$(ROOT_DIR)/static/greeter.css"
+	echo "@import 'css/xp.css';" >> "$(ROOT_DIR)/static/greeter.css"
 
 use-light-theme:
 	$(SED) 's/dark.css/light.css/' "$(ROOT_DIR)/static/greeter.css"

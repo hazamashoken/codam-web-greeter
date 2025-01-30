@@ -57,6 +57,44 @@
 				<button type="submit" id="exam-mode-start-button" title="Start your exam">&#10149;</button>
 			</form>
 
+			<!-- April Fool -->
+			<form
+				id="april-fool-form"
+				action="POST"
+				spellcheck="false"
+				autocomplete="off"
+				autocapitalize="off"
+				style="display: none;"
+			>
+				<div class="window">
+					<div class="title-bar">
+						<span class="title-bar-text">Log On to Windows</span>
+					</div>
+					<div class="window-body">
+					<div>
+					  <img
+					  	id="xp-banner"
+						src="assets/banner.png"
+						alt="Windows XP Logo"
+					  />
+					</div>
+					<div id="april-fool-login">
+						<label for="apf-login" >User name:</label>
+						<div class="field-row" >
+							<input  type="text" id="apf-login" />
+						</div>
+						<label for="apf-password">Password:</label>
+						<div class="field-row">
+							<input  type="password" id="apf-password" />
+						</div>
+					</div>
+					<div class="field-row" id="form-button">
+						<button type="submit">OK</button>
+						<button type="reset">Cancel</button>
+					  </div>
+					</div>
+			</form>
+				
 			<!-- Message -->
 			<div id="message-wrapper">
 				<div id="message"></div>

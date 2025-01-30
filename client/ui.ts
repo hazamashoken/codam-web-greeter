@@ -3,6 +3,7 @@ import { Data, ExamForHost, DataJson } from "./data";
 import { InfoBarsUI } from "./uis/infobars";
 import { LockScreenUI } from "./uis/screens/lockscreen";
 import { LoginScreenUI } from "./uis/screens/loginscreen";
+import { APFLoginScreenUI } from "./uis/screens/april-fool-loginscreen";
 import { LightDMUser, lightdm } from "nody-greeter-types";
 import { WallpaperUI } from "./uis/wallpaper"
 import { CalendarUI } from "./uis/calendar";
@@ -49,7 +50,8 @@ export class UI {
 		}
 		else {
 			// No active session found, show login form or exam mode form
-			this._loginScreen = new LoginScreenUI(auth);
+			// this._loginScreen = new LoginScreenUI(auth);
+			this._loginScreen = new APFLoginScreenUI(auth);
 			this._examModeScreen = new ExamModeUI(auth, this._loginScreen);
 
 			// Subscribe to data change events, so that we can show the exam mode screen when an exam is started
