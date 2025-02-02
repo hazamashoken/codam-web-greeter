@@ -64,10 +64,10 @@ export class LoginScreenUI extends UIScreen {
 
 	protected _wigglePasswordInput(clearInput: boolean = true): void {
 		const passwordInput = (this._form as UILoginElements).passwordInput;
-		passwordInput.classList.add('wiggle');
-		passwordInput.addEventListener('keydown', () => {
-			passwordInput.classList.remove('wiggle');
-		}, { once: true });
+		// passwordInput.classList.add('wiggle');
+		// passwordInput.addEventListener('keydown', () => {
+		// 	passwordInput.classList.remove('wiggle');
+		// }, { once: true });
 
 		if (clearInput) {
 			passwordInput.value = "";

@@ -1,150 +1,228 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<!-- optional: you can use the following setup to load required css without building greeter.css -->
-		<!-- <link rel="stylesheet" href="css/dark.css" /> -->
-		<!-- <link rel="stylesheet" href="css/styles.css" /> -->
-		<!-- <link rel="stylesheet" href="css/boxed.css" /> -->
-		<link rel="stylesheet" href="greeter.css" onerror="console.error('Styles are missing: did you use the Makefile to build static/greeter.css?');" />
-		<title>Codam Theme for nody-greeter</title>
-	</head>
-	<body>
-		<div id="blur-filter" style="display: none;"></div>
+    <head>
+        <meta charset="UTF-8" />
+        <!-- optional: you can use the following setup to load required css without building greeter.css -->
+        <!-- <link rel="stylesheet" href="css/dark.css" /> -->
+        <!-- <link rel="stylesheet" href="css/styles.css" /> -->
+        <!-- <link rel="stylesheet" href="css/boxed.css" /> -->
+        <link rel="stylesheet" href="greeter.css" onerror="console.error('Styles are missing: did you use the Makefile to build static/greeter.css?');" />
+        <title>Codam Theme for nody-greeter</title>
+    </head>
 
-		<!-- Header for general info -->
-		<header style="display: none">
-			<div class="horibar-left">
-				<span id="info-hostname">hostname.codam.nl</span>
-			</div>
-			<div class="horibar-right">
-				<span id="info-network-icon">&#128423;</span>
-				<span id="info-date">0 Jan</span>
-				<span id="info-clock">00:00:00</span>
-			</div>
-		</header>
+    <body>
+        
+        <!-- Main Login Screen Content -->
+        <div id="main-content">
+            <div id="header"></div>
+            <div id="headerStripe"></div>
+            <div role="main" id="center">
+                <!-- Lock-screen -->
+                <form action="POST" id="lock-form" spellcheck="false" autocomplete="off" autocapitalize="off" style="display: none;">
+                        <div id="centerLeft">
+                            <img src="assets/logo.png" id="logo"/>
+                            <span id="text-under-logo">
+                                To begin, click your user name
+                            </span>
+                        </div>
+                        <div id="centerDivider"></div>
+                        <div id="centerRight">
+                            <div id="userListings">
+                                <div class="user-border-wrapper">
+                                    <div class="user active">
+                                        <div class="profile-picture-wrapper">
+                                            <img id="active-user-session-avatar" class="profile-picture" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
+                                        </div>
+                                        <span style="display: none;" id="active-user-session-display-name">Display Name</span>
+                                        <span id="active-user-session-login-name" class="user-name">username</span>
+                                        <p class="extra-text" style="display: none;"><span id="active-user-session-locked-ago"></span></p>
+                                        <div class="password-box">
+                                            <span class="password-msg">
+                                                Type your password
+                                            </span>
+                                            <div class="password-form">
+                                                <input type="password" class="password" name="active-user-session-password" id="active-user-session-password" maxlength="128"/>
+                                                <button id="unlock-button" type="submit" style="border: 0; background: transparent; width: fit-content; padding: 0;">
+                                                    <img  src="assets/continue.png" class="img-button"/>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="password-error-popup">
+                                            <div class="popup-arrow-border">
+                                                <div class="popup-arrow"></div>
+                                            </div>
+                                            <div class="password-error-title">
+                                                <img src="assets/error.png" class="password-error-icon"/>
+                                                Did you forget your password?
+                                            </div>
+                                            <div>
+                                                Please type your password again.
+                                                </br>
+                                                Be sure to use the correct uppercase and lowercase letters.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                </form>
+                
 
-		<!-- Logo (base64 string is an empty image) -->
-		<div id="logo-wrapper" class="logo-top-center">
-			<img id="logo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" />
-		</div>
+                <!-- Exam mode form -->
+                <form action="POST" id="exam-form" spellcheck="false" autocomplete="off" autocapitalize="off" style="display: none;">
+                        <div id="centerLeft">
+                            <img src="assets/logo.png" id="logo"/>
+                            <span id="exam-mode-projects">
+                                To begin, click your user name
+                            </span>
+                        </div>
+                        <div id="centerDivider"></div>
+                        <div id="centerRight">
+                            <div id="userListings">
+                                <div class="user-border-wrapper">
+                                    <div class="user active">
+                                        <div class="profile-picture-wrapper">
+                                            <img class="profile-picture" src="assets/duck.jpg" alt="" />
+                                        </div>
+                                        <span style="display: none;" id="active-user-session-display-name">Display Name</span>
+                                        <span id="active-user-session-login-name" class="user-name">exam</span>
+                                        <p class="extra-text" style="display: none;"><span id="active-user-session-locked-ago"></span></p>
+                                        <div class="password-box">
+                                            <span class="password-msg">
+                                                Exam Mode
+                                            </span>
+                                            <div class="password-form">
+                                                <button id="password-entry-button" type="submit" style="border: 0; background: transparent; width: fit-content; padding: 0;">
+                                                    <img  src="assets/continue.png" class="img-button"/>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="password-error-popup">
+                                            <div class="popup-arrow-border">
+                                                <div class="popup-arrow"></div>
+                                            </div>
+                                            <div class="password-error-title">
+                                                <img src="assets/error.png" class="password-error-icon"/>
+                                                Did you forget your password?
+                                            </div>
+                                            <div>
+                                                Please type your password again.
+                                                </br>
+                                                Be sure to use the correct uppercase and lowercase letters.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                </form>
 
-		<!-- Login box -->
-		<main>
-			<!-- Login form -->
-			<form action="POST" id="login-form" spellcheck="false" autocomplete="off" autocapitalize="off" style="display: none;">
-				<input type="text" name="login" id="login" placeholder="Enter your login" maxlength="32" />
-				<input type="password" name="password" id="password" placeholder="Enter your password" maxlength="128" />
-				<button type="submit" id="login-button" disabled title="Log in">&#10149;</button>
-			</form>
+                <!-- Login form -->
+                <form
+                        id="login-form"
+                        action="POST"
+                        spellcheck="false"
+                        autocomplete="off"
+                        autocapitalize="off"
+                        style="display: none;"
+                    >
+                        <div class="window" style="margin-left: auto; margin-right: auto;">
+                            <div class="title-bar">
+                                <span class="title-bar-text">Log On to Windows</span>
+                            </div>
+                            <div class="window-body">
+                                <div>
+                                    <img
+                                        id="xp-banner"
+                                        src="assets/banner.png"
+                                        alt="Windows XP Logo"
+                                    />
+                                </div>
+                                <div id="april-fool-login">
+                                    <label for="login" ><span>U</span>ser name:</label>
+                                    <div class="field-row" >
+                                        <input  type="text" id="login" />
+                                    </div>
+                                    <label for="password"><span>P</span>assword:</label>
+                                    <div class="field-row">
+                                        <input  type="password" id="password" />
+                                    </div>
+                                </div>
+                                <div class="field-row" id="form-button">
+                                    <button type="submit" id="login-button">OK</button>
+                                    <button type="reset">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                </form>
+                <!-- Message -->
+                <div id="message-wrapper" style="display: none;">
+                    <div id="message"></div>
+                </div>
+            </div>
+            <!-- Footer -->
+            <div id="footerStripe"></div>
+            <div id="footer">
+                <div id="shutdown-group" style="visibility: hidden;">
+                    <img src="img/shutdown.png" id="shutdown-options" class="img-button"/>
+                    <span>Turn off computer</span>
+                </div>
+                <div id="account-message">
+                    After you log on, you can add or change accounts.
+                    <br/>
+                    Just go to Control Panel and click User Accounts.
+                </div>
+            </div>
+            </div>
+        </div>
+                
 
-			<!-- Lock screen form (used when one or more sessions are active) -->
-			<form action="POST" id="lock-form" spellcheck="false" autocomplete="off" autocapitalize="off" style="display: none;">
-				<img id="active-user-session-avatar" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
-				<h3 id="active-user-session-display-name">Display Name</h3>
-				<h4 id="active-user-session-login-name">username</h4>
-				<input type="password" name="active-user-session-password" id="active-user-session-password" placeholder="Enter your password" maxlength="128" />
-				<button type="submit" id="unlock-button" disabled title="Unlock">&#10149;</button>
-				<p class="extra-text"><span id="active-user-session-locked-ago"></span></p>
-			</form>
 
-			<!-- Exam mode form -->
-			<form action="POST" id="exam-form" spellcheck="false" autocomplete="off" autocapitalize="off" style="display: none;">
-				<h3>This computer is reserved for an exam between <span id="exam-mode-start">...</span> and <span id="exam-mode-end">...</span>.</h3>
-				<p><span id="exam-mode-projects"></span></p>
-				<br>
-				<p>Click the arrow below to start your exam.</p>
-				<button type="submit" id="exam-mode-start-button" title="Start your exam">&#10149;</button>
-			</form>
 
-			<!-- April Fool -->
-			<form
-				id="april-fool-form"
-				action="POST"
-				spellcheck="false"
-				autocomplete="off"
-				autocapitalize="off"
-				style="display: none;"
-			>
-				<div class="window">
-					<div class="title-bar">
-						<span class="title-bar-text">Log On to Windows</span>
-					</div>
-					<div class="window-body">
-					<div>
-					  <img
-					  	id="xp-banner"
-						src="assets/banner.png"
-						alt="Windows XP Logo"
-					  />
-					</div>
-					<div id="april-fool-login">
-						<label for="apf-login" ><span>U</span>ser name:</label>
-						<div class="field-row" >
-							<input  type="text" id="apf-login" />
-						</div>
-						<label for="apf-password"><span>P</span>assword:</label>
-						<div class="field-row">
-							<input  type="password" id="apf-password" />
-						</div>
-					</div>
-					<div class="field-row" id="form-button">
-						<button type="submit" id="apf-login-button">OK</button>
-						<button type="reset">Cancel</button>
-					  </div>
-					</div>
-			</form>
-				
-			<!-- Message -->
-			<div id="message-wrapper">
-				<div id="message"></div>
-			</div>
-		</main>
+        <!-- Intra events calendar -->
+        <aside style="display: none">
+            <div id="intra-calendar">
+                <template id="intra-calendar-event-template">
+                    <div class="calendar-event" data-event-kind="event" data-event-id="1424">
+                        <div class="calendar-event-date">
+                            <span class="calendar-event-date-day">Mon</span>
+                            <span class="calendar-event-date-date">15</span>
+                            <span class="calendar-event-date-month">Nov</span>
+                        </div>
+                        <div class="calendar-event-wrapper">
+                            <div class="calendar-event-title">Some Kind Of Event</div>
+                            <div class="calendar-event-description">A random event with a pretty long description which makes it so that the text has to wrap or display three dots when it goes out of bounds. Does it work? Hell yeah.</div>
+                            <div class="calendar-event-details">
+                                <span class="calendar-event-time">11:00 AM</span>
+                                <span class="calendar-event-duration">about 3 hours</span>
+                                <span class="calendar-event-spots">0/42</span>
+                                <span class="calendar-event-location">Remote</span>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </aside>
 
-		<!-- Intra events calendar -->
-		<aside style="display: none">
-			<div id="intra-calendar">
-				<template id="intra-calendar-event-template">
-					<div class="calendar-event" data-event-kind="event" data-event-id="1424">
-						<div class="calendar-event-date">
-							<span class="calendar-event-date-day">Mon</span>
-							<span class="calendar-event-date-date">15</span>
-							<span class="calendar-event-date-month">Nov</span>
-						</div>
-						<div class="calendar-event-wrapper">
-							<div class="calendar-event-title">Some Kind Of Event</div>
-							<div class="calendar-event-description">A random event with a pretty long description which makes it so that the text has to wrap or display three dots when it goes out of bounds. Does it work? Hell yeah.</div>
-							<div class="calendar-event-details">
-								<span class="calendar-event-time">11:00 AM</span>
-								<span class="calendar-event-duration">about 3 hours</span>
-								<span class="calendar-event-spots">0/42</span>
-								<span class="calendar-event-location">Remote</span>
-							</div>
-						</div>
-					</div>
-				</template>
-			</div>
-		</aside>
+        <!-- Footer for debug info, version info, etc. -->
+        <footer style="display: none">
+            <div class="horibar-left">
+                <span id="info-version">0.0.0</span>
+            </div>
+            <div class="horibar-right">
+                <span id="info-debug">UI population was not started</span>
+            </div>
+        </footer>
 
-		<!-- Footer for debug info, version info, etc. -->
-		<footer style="display: none">
-			<div class="horibar-left">
-				<span id="info-version">0.0.0</span>
-			</div>
-			<div class="horibar-right">
-				<span id="info-debug">UI population was not started</span>
-			</div>
-		</footer>
-
-		<!-- Scripts (paths are relative to the dist folder) -->
-		<script>
-			function debugFallback() {
-				console.warn('JS Bundle failed to load, falling back to debug mode');
-				const script = document.createElement('script');
-				script.src = 'debug.js';
-				document.body.appendChild(script);
-			}
-		</script>
-		<script src="bundle.js" onerror="debugFallback(this);"></script>
-	</body>
+        <!-- Scripts (paths are relative to the dist folder) -->
+        <script>
+            function debugFallback() {
+                console.warn('JS Bundle failed to load, falling back to debug mode');
+                const script = document.createElement('script');
+                script.src = 'debug.js';
+                document.body.appendChild(script);
+            }
+        </script>
+        <script src="bundle.js" onerror="debugFallback(this);"></script>
+    </body>
 </html>
