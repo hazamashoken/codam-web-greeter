@@ -142,7 +142,6 @@ export class UI {
 			// Only set exam mode if the exam that is starting soon is not already in the list of exam ids displayed in exam mode
 			if (!this._examModeScreen?.examMode || !ongoingExams.some((exam) => this._examModeScreen?.examIds.includes(exam.id))) {
 				console.log("Activating exam mode login UI");
-				throw new Error('Here');
 				this._examModeScreen?.enableExamMode(ongoingExams);
 				// Exam mode screen is shown automatically by the function above
 			}
