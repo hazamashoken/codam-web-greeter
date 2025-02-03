@@ -125,10 +125,10 @@ export class LockScreenUI extends UIScreen {
 
 	protected _wigglePasswordInput(clearInput: boolean = true): void {
 		const passwordInput = (this._form as UILockScreenElements).passwordInput;
-		passwordInput.classList.add('wiggle');
-		passwordInput.addEventListener('keydown', () => {
-			passwordInput.classList.remove('wiggle');
-		}, { once: true });
+		// passwordInput.classList.add('wiggle');
+		// passwordInput.addEventListener('keydown', () => {
+		// 	passwordInput.classList.remove('wiggle');
+		// }, { once: true });
 
 		if (clearInput) {
 			passwordInput.value = "";
@@ -138,7 +138,7 @@ export class LockScreenUI extends UIScreen {
 	}
 
 	protected _showErrorPopup(): void {
-		document.querySelector("lock-form #password-error-popup")!
+		document.querySelector("#lock-form #password-error-popup")!
 			.classList.add("active");
 	}
 
