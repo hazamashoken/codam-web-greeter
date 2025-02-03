@@ -581,3 +581,9 @@ dialog.calendar-event-dialog .dialog-close-button {
 dialog.calendar-event-dialog .dialog-close-button:hover {
 	color: var(--color-text-primary);
 }
+
+#exam-login, #exam-password {
+	width: 30%;
+	margin-left: auto;
+	margin-right: auto;
+}
