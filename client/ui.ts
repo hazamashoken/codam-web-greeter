@@ -139,17 +139,16 @@ export class UI {
 		});
 
 		if (!this._examModeDisabled && ongoingExams.length > 0) {
-			throw new Error("exam " + ongoingExams.length);
 			// Only set exam mode if the exam that is starting soon is not already in the list of exam ids displayed in exam mode
 			if (!this._examModeScreen?.examMode || !ongoingExams.some((exam) => this._examModeScreen?.examIds.includes(exam.id))) {
 				console.log("Activating exam mode login UI");
+				throw new Error('Here');
 				this._examModeScreen?.enableExamMode(ongoingExams);
 				// Exam mode screen is shown automatically by the function above
 			}
 			return true;
 		}
 		else {
-			throw new Error("no exam " + ongoingExams.length);
 			if (this._examModeScreen?.examMode) { // Only unset exam mode if it was set before
 				console.log('Deactivating exam mode login UI');
 				this._examModeScreen?.disableExamMode();
