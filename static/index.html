@@ -105,12 +105,12 @@
                                                 Exam Mode
                                             </span>
                                             <div class="password-form">
-                                                <button id="password-entry-button" type="submit" style="border: 0; background: transparent; width: fit-content; padding: 0;">
+                                                <button id="exam-mode-start-button" type="submit" style="border: 0; background: transparent; width: fit-content; padding: 0;">
                                                     <img  src="assets/continue.png" class="img-button"/>
                                                 </button>
                                             </div>
                                         </div>
-                                        <div class="password-error-popup">
+                                        <div class="password-error-popup active">
                                             <div class="popup-arrow-border">
                                                 <div class="popup-arrow"></div>
                                             </div>
@@ -119,9 +119,10 @@
                                                 Did you forget your password?
                                             </div>
                                             <div>
-                                                Please type your password again.
-                                                </br>
-                                                Be sure to use the correct uppercase and lowercase letters.
+                                                <h3>This computer is reserved for an exam between 
+                                                    <br/>
+                                                    <span id="exam-mode-start">...</span> and 
+                                                    <span id="exam-mode-end">...</span>.</h3>
                                             </div>
                                         </div>
                                     </div>
