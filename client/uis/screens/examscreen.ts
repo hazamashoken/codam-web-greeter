@@ -58,6 +58,9 @@ export class ExamModeUI extends UIScreen {
 		if (exams.length === 0) {
 			return;
 		}
+
+		document.body.style.backgroundImage = "../../assets/exam-wallpaper.png";
+
 		this._examMode = true;
 		this._examIds = exams.map((exam) => exam.id);
 		this._populateData(exams);

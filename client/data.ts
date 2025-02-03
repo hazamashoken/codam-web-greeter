@@ -5,6 +5,7 @@ import { lightdm } from 'nody-greeter-types/index'
 const PATH_DATA_JSON: string = 'data.json';
 const PATH_LOGO: string = '/usr/share/codam/web-greeter/logo.png';
 const PATH_WALLPAPER_LOGIN: string = '/usr/share/codam/web-greeter/login-screen.png';
+// const PATH_WALLPAPER_EXAM: string = '/usr/share/codam/web-greeter/exam-screen.png';
 const PATH_WALLPAPER_LOCK_USER: string = '/tmp/codam-web-greeter-user-wallpaper';
 const PATH_USER_IMAGE: string = '/tmp/codam-web-greeter-user-avatar';
 const PATH_USER_DEFAULT_IMAGE: string = '/usr/share/codam/web-greeter/user.png';
@@ -104,6 +105,7 @@ export class Data {
 	public hostname: string;
 	public loginScreenWallpaper: GreeterImage;
 	public userLockScreenWallpaper: GreeterImage;
+	// public examLockScreenWallpaper: GreeterImage;
 	public logo: GreeterImage;
 	public userImage: GreeterImage;
 	public userDefaultImage: GreeterImage;
@@ -122,6 +124,7 @@ export class Data {
 		// Set up images
 		this.loginScreenWallpaper = new GreeterImage(PATH_WALLPAPER_LOGIN);
 		this.userLockScreenWallpaper = new GreeterImage(PATH_WALLPAPER_LOCK_USER);
+		// this.examLockScreenWallpaper = new GreeterImage(PATH_WALLPAPER_EXAM);
 		this.logo = new GreeterImage(PATH_LOGO);
 		this.userImage = new GreeterImage(PATH_USER_IMAGE);
 		this.userDefaultImage = new GreeterImage(PATH_USER_DEFAULT_IMAGE);
