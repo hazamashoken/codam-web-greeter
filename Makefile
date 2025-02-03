@@ -64,8 +64,8 @@ re:
 
 # CLIENT THEMING
 static/greeter.css:
-	echo "@import 'css/styles.css';" > "$(ROOT_DIR)/static/greeter.css"
-	echo "@import 'css/dark.css';" >> "$(ROOT_DIR)/static/greeter.css"
+	# echo "@import 'css/styles.css';" > "$(ROOT_DIR)/static/greeter.css"
+	# echo "@import 'css/dark.css';" >> "$(ROOT_DIR)/static/greeter.css"
 	echo "@import 'css/xp.css';" >> "$(ROOT_DIR)/static/greeter.css"
 
 use-light-theme:
