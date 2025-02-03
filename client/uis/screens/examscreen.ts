@@ -2,7 +2,6 @@ import { Authenticator, AuthenticatorEvents } from "../../auth";
 import { UIScreen, UIExamModeElements } from "../screen";
 import { LoginScreenUI } from "./loginscreen";
 import { ExamForHost } from "../../data";
-import { APFLoginScreenUI } from "./april-fool-loginscreen";
 
 export class ExamModeUI extends UIScreen {
 	public static readonly EXAM_USERNAME: string = 'exam';
@@ -11,7 +10,7 @@ export class ExamModeUI extends UIScreen {
 	public readonly _form: UIExamModeElements;
 	private _examMode: boolean = false;
 	private _examIds: number[] = [];
-	private _loginScreen: LoginScreenUI | APFLoginScreenUI;
+	private _loginScreen: LoginScreenUI;
 	protected _events: AuthenticatorEvents = {
 		authenticationStart: () => {
 			this._disableForm();
@@ -46,7 +45,7 @@ export class ExamModeUI extends UIScreen {
 		}
 	}
 
-	public constructor(auth: Authenticator, loginUI: LoginScreenUI | APFLoginScreenUI) {
+	public constructor(auth: Authenticator, loginUI: LoginScreenUI) {
 		super(auth);
 
 		// Keep a reference to the login screen so that we can show it when the exam is over
