@@ -138,7 +138,7 @@ export class LockScreenUI extends UIScreen {
 	}
 
 	protected _showErrorPopup(): void {
-		document.getElementById(".password-error-popup")!
+		document.querySelector("lock-form #password-error-popup")!
 			.classList.add("active");
 	}
 
