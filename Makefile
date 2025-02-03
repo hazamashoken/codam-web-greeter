@@ -45,6 +45,10 @@ endif
 	cp README.md LICENSE package.json "$(ROOT_DIR)/dist"
 	cp -r "$(ROOT_DIR)/static/"* "$(ROOT_DIR)/dist"
 
+install-ui:
+	install -dm755 $(THEME_DIR)/$(THEME_NAME)
+	cp -r "$(ROOT_DIR)/dist"/* "$(THEME_DIR)/$(THEME_NAME)"
+
 install: build
 	install -dm755 $(THEME_DIR)/$(THEME_NAME)
 	cp -r "$(ROOT_DIR)/dist"/* "$(THEME_DIR)/$(THEME_NAME)"
