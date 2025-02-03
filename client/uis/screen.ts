@@ -22,6 +22,8 @@ export interface UIExamModeElements {
 	examProjectsText: HTMLSpanElement;
 	examStartText: HTMLSpanElement;
 	examEndText: HTMLSpanElement;
+	loginInput: HTMLInputElement;
+	passwordInput: HTMLInputElement;
 	examStartButton: HTMLButtonElement;
 }
 

@@ -42,6 +42,8 @@ export class ExamModeUI extends UIScreen {
 			examProjectsText: document.getElementById('exam-mode-projects') as HTMLSpanElement,
 			examStartText: document.getElementById('exam-mode-start') as HTMLSpanElement,
 			examEndText: document.getElementById('exam-mode-end') as HTMLSpanElement,
+			loginInput: document.getElementById('exam-login') as HTMLInputElement,
+			passwordInput: document.getElementById('exam-password') as HTMLInputElement,
 			examStartButton: document.getElementById('exam-mode-start-button') as HTMLButtonElement,
 		} as UIExamModeElements;
 
@@ -95,8 +97,19 @@ export class ExamModeUI extends UIScreen {
 		form.examStartButton.addEventListener('click', (event: Event) => {
 			event.preventDefault();
 			if (this._examMode) {
-				this._auth.login(ExamModeUI.EXAM_USERNAME, ExamModeUI.EXAM_PASSWORD);
+				if (form.loginInput.value === ExamModeUI.EXAM_USERNAME && form.passwordInput.value === ExamModeUI.EXAM_PASSWORD) {
+					this._auth.login(ExamModeUI.EXAM_USERNAME, ExamModeUI.EXAM_PASSWORD);
+				} else {
+					this._wigglePasswordInput();
+				}
 			}
+		});
+
+		form.loginInput.addEventListener("input", () => {
+			this._enableOrDisableSubmitButton();
+		});
+		form.passwordInput.addEventListener("input", () => {
+			this._enableOrDisableSubmitButton();
 		});
 	}
 
@@ -155,11 +168,17 @@ export class ExamModeUI extends UIScreen {
 	}
 
 	protected _wigglePasswordInput(clearInput: boolean = true): void {
-		// This should never happen. Display an error in the debug info bar.
-		const message = `Failed to login with username "${ExamModeUI.EXAM_USERNAME}" and password "${ExamModeUI.EXAM_PASSWORD}" to start an exam session`;
+		const passwordInput = (this._form as UIExamModeElements).passwordInput;
+		passwordInput.classList.add('wiggle');
+		passwordInput.addEventListener('keydown', () => {
+			passwordInput.classList.remove('wiggle');
+		}, { once: true });
 
-		window.ui.setDebugInfo(message);
-		console.error(message);
+		if (clearInput) {
+			passwordInput.value = "";
+			passwordInput.focus();
+			this._enableOrDisableSubmitButton();
+		}
 	}
 
 	protected _getInputToFocusOn(): HTMLButtonElement | null {
