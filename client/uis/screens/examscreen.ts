@@ -75,6 +75,7 @@ export class ExamModeUI extends UIScreen {
 		this._populateData(exams);
 		this._loginScreen.hideForm();
 		this.showForm();
+		throw new Error('enableExamMode');
 	}
 
 	/**
