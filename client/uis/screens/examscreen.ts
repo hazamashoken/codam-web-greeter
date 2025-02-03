@@ -70,7 +70,6 @@ export class ExamModeUI extends UIScreen {
 		if (exams.length === 0) {
 			return;
 		}
-		throw new Error('enableExamMode');
 		this._examMode = true;
 		this._examIds = exams.map((exam) => exam.id);
 		this._populateData(exams);
