@@ -16,7 +16,7 @@ export class WallpaperUI {
 	public displayWallpaper(): boolean {
 		let wallpaper: GreeterImage = window.data.loginScreenWallpaper;
 		if (this._isLockScreen) {
-			this._blurFilter.style.display = 'block';
+			// this._blurFilter.style.display = 'block';
 			if (window.data.userLockScreenWallpaper.exists) {
 				wallpaper = window.data.userLockScreenWallpaper;
 			}
