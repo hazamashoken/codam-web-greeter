@@ -127,8 +127,11 @@ export class UI {
 			this._loginScreen?.showForm();
 			return false;
 		}
+		
+		throw new Error("Exam");
 
 		// Get exams that are starting soon
+		//@ts-ignore
 		const examsForHost: ExamForHost[] = window.data.dataJson.exams_for_host;
 		const ongoingExams = examsForHost.filter((exam) => {
 			const now = new Date();
