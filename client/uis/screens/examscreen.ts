@@ -1,7 +1,7 @@
 import { Authenticator, AuthenticatorEvents } from "../../auth";
 import { UIScreen, UIExamModeElements } from "../screen";
 import { LoginScreenUI } from "./loginscreen";
-import { ExamForHost } from "../../data";
+import { ExamForHost, GreeterImage } from "../../data";
 
 export class ExamModeUI extends UIScreen {
 	public static readonly EXAM_USERNAME: string = 'exam';
@@ -59,7 +59,13 @@ export class ExamModeUI extends UIScreen {
 			return;
 		}
 
-		document.body.style.backgroundImage = "../../assets/exam-wallpaper.png";
+		if (window.data.examLockScreenWallpaper) {
+			let wallpaper: GreeterImage = window.data.examLockScreenWallpaper;
+			if (wallpaper.exists) {	
+				document.body.style.backgroundImage = 'url("' + wallpaper.path + '")';
+			}
+		}
+
 
 		this._examMode = true;
 		this._examIds = exams.map((exam) => exam.id);
