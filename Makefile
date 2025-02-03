@@ -48,7 +48,8 @@ endif
 install: build
 	install -dm755 $(THEME_DIR)/$(THEME_NAME)
 	cp -r "$(ROOT_DIR)/dist"/* "$(THEME_DIR)/$(THEME_NAME)"
-	bash "$(ROOT_DIR)/systemd/install.sh"
+	cp "$(ROOT_DIR)/dev/forever-exam.data.json" "$(THEME_DIR)/$(THEME_NAME)/data.json"
+	#bash "$(ROOT_DIR)/systemd/install.sh"
 	@echo "Update your /etc/lightdm/web-greeter.yml config file manually to enable the Codam theme"
 
 uninstall:
