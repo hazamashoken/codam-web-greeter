@@ -78,6 +78,14 @@ export class ExamModeUI extends UIScreen {
 	 * Disable exam mode and show the default login screen instead.
 	 */
 	public disableExamMode(): void {
+
+		let wallpaper: GreeterImage = window.data.loginScreenWallpaper;
+		if (wallpaper.exists) {
+			document.body.style.backgroundImage = 'url("' + wallpaper.path + '")';
+		} else {
+			document.body.style.backgroundColor = 'black';
+			document.body.style.backgroundImage = 'none';
+		}
 		this._examMode = false;
 		this._examIds = [];
 		this._populateData([]);
