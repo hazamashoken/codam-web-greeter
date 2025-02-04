@@ -3,6 +3,7 @@
 
 	/* Generic settings */
 	--default-bg-img: url('../assets/default-wallpaper.png');
+	--default-exam-stripe-img: url('../assets/exam-stripe.png');
 	--blur-bg-filter: blur(5px);
 	--blur-bg-filter-lock-screen: blur(25px);
 	--border-radius: 4px;
@@ -586,4 +587,56 @@ dialog.calendar-event-dialog .dialog-close-button:hover {
 	width: 30%;
 	margin-left: auto;
 	margin-right: auto;
+}
+
+/* #exam-mode-stripe { */
+	/* display: block; */
+	/* position: fixed; */
+	/* bottom: 0; */
+	/* right: 0; */
+	/* width: 100vw; */
+/* } */
+
+#top-stripe {
+	background: var(--default-exam-stripe-img) repeat-x;
+	background-size: 150px;
+	animation: move-right 100000s linear infinite;
+	height: 20px;
+	width: 100%;
+	display: block;
+	position: fixed;
+	top: 5%;
+	right: 0;
+}
+
+#bottom-stripe {
+	background: var(--default-exam-stripe-img) repeat-x;
+	background-size: 150px;
+	animation: move-left 100000s linear infinite;
+	height: 20px;
+	width: 100%;
+	display: block;
+	position: fixed;
+	bottom: 5%;
+	right: 0;
+}
+
+@keyframes move-right {
+	0% {
+		background-position: 0 0;
+	}
+
+	100% {
+		background-position: 10000000px 0;
+	}
+}
+
+@keyframes move-left {
+	0% {
+		background-position: 10000000px 0;
+	}
+	
+	100% {
+		background-position: 0 0;
+	}
 }

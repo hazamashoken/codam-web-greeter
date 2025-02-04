@@ -61,8 +61,17 @@ export class ExamModeUI extends UIScreen {
 
 		if (window.data.examLockScreenWallpaper) {
 			let wallpaper: GreeterImage = window.data.examLockScreenWallpaper;
+			let stripe: GreeterImage = window.data.examStripe;
 			if (wallpaper.exists) {	
 				document.body.style.backgroundImage = 'url("' + wallpaper.path + '")';
+			}
+			if (stripe.exists) {
+				let top = document.getElementById("top-stripe");
+				let bottom = document.getElementById("bottom-stripe");
+				if (top && bottom) {	
+					top.style.background = 'url("' + stripe.path + '") repeat-x';
+					bottom.style.background = 'url("' + stripe.path + '") repeat-x';
+				}
 			}
 		}
 
