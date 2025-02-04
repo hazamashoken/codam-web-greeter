@@ -65,6 +65,10 @@ export class ExamModeUI extends UIScreen {
 			if (wallpaper.exists) {	
 				document.body.style.backgroundImage = 'url("' + wallpaper.path + '")';
 			}
+			let intraCalendar = document.getElementById("intra-calendar");
+			if (intraCalendar) {
+				intraCalendar.style.display = "none";
+			}
 			if (stripe.exists) {
 				let top = document.getElementById("top-stripe");
 				let bottom = document.getElementById("bottom-stripe");
@@ -94,6 +98,10 @@ export class ExamModeUI extends UIScreen {
 		} else {
 			document.body.style.backgroundColor = 'black';
 			document.body.style.backgroundImage = 'none';
+		}
+		let intraCalendar = document.getElementById("intra-calendar");
+		if (intraCalendar) {
+			intraCalendar.style.removeProperty("display");
 		}
 		this._examMode = false;
 		this._examIds = [];
