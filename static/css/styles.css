@@ -3,7 +3,7 @@
 
 	/* Generic settings */
 	--default-bg-img: url('assets/default-wallpaper.png'); /* relative to html file, set in JS */
-	--default-exam-stripe-img: url('assets/exam-stripe.png');
+	--default-exam-stripe-img: url('../assets/exam-stripe.png');
 	--blur-bg-filter: blur(5px);
 	--blur-bg-filter-lock-screen: blur(25px);
 	--border-radius: 4px;
