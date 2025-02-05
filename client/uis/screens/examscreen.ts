@@ -75,6 +75,8 @@ export class ExamModeUI extends UIScreen {
 				if (top && bottom) {	
 					top.style.background = 'url("' + stripe.path + '") repeat-x';
 					bottom.style.background = 'url("' + stripe.path + '") repeat-x';
+					top.style.backgroundSize = '150px';
+					bottom.style.backgroundSize = '150px';
 				}
 			}
 		}
