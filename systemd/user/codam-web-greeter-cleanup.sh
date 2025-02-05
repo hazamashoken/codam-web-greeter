@@ -3,9 +3,10 @@
 # Exit on error
 set -e
 
-# Only run for users in the student or piscine group
-if ! /usr/bin/groups | /usr/bin/grep -qE 'singapore'; then
-	/usr/bin/echo "Not running for user $(/usr/bin/whoami)"
+# Do not run this script for the following users
+SKIPPED_USERS="lightdm exam checkin event"
+if [[ $SKIPPED_USERS =~ (^|[[:space:]])$USER($|[[:space:]]) ]]; then
+	/usr/bin/echo "Skipping ignored user $USER"
 	exit 0
 fi
 
