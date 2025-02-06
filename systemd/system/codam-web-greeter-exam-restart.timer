@@ -3,7 +3,7 @@ Description=Log users out after a period of inactivity
 After=network.target
 
 [Timer]
-OnCalendar=*:0/1
+OnCalendar=*-*-* *:*:00
 Unit=codam-web-greeter-exam-restart.service
 
 [Install]
