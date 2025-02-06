@@ -1,10 +1,9 @@
 [Unit]
 Description=Automatic restart for exam
-After=network-online.target
+After=graphical.target
 
 [Service]
-Type=oneshot
-Restart=no
+Type=simple
 User=root
 Group=root
 Environment="DISPLAY=:0"

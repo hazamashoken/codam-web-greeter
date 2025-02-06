@@ -26,10 +26,12 @@ if /usr/bin/jq -e 'has("exams_for_host")' "$DATA_FILE" >/dev/null; then
         # Calculate the alert time (20 minutes before exam)
         /usr/bin/echo "Exam time: $EXAM_TIME"
         EXAM_TIMESTAMP=$(/usr/bin/date -u -d "$EXAM_TIME" +"%s")
-        AUTOMATIC_RESTART_TIME=$((EXAM_TIMESTAMP - 900 )) # 900 seconds = 15 minutes
-
-        if (( CURRENT_TIME >= AUTOMATIC_RESTART_TIME && CURRENT_TIME < AUTOMATIC_RESTART_TIME + 60 )); then
-            /usr/sbin/reboot
+        ALERT_TIMESTAMP=$((EXAM_TIMESTAMP - 1200)) # 1200 seconds = 20 minutes
+        
+        if (( CURRENT_TIME >= ALERT_TIMESTAMP && CURRENT_TIME < ALERT_TIMESTAMP + 60 )); then
+            /usr/bin/echo "Showing restart aleart for $LOGIN_USER at $CURRENT_TIME"
+            TIME_MSG=$(/usr/bin/date -u )
+            sudo -u $LOGIN_USER DISPLAY=${DISPLAY} DBUS_SESSION_BUS_ADDRESS=${DBUS_ADDRESS} /usr/bin/zenity --warning --text="This machine is reserve for $EXAM_NAME.\n\nAutomatic restart in 5 minutes.\nPlease logout.\n\nThank you"
         fi
 
     done

@@ -1,6 +1,6 @@
 [Unit]
-Description=Automatic restart for exam a period of inactivity
-After=network.target
+Description=Log users out after a period of inactivity
+After=graphical.target
 
 [Timer]
 OnCalendar=*-*-* *:*:00
