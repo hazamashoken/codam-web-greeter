@@ -34,13 +34,13 @@ if /usr/bin/jq -e 'has("exams_for_host")' "$DATA_FILE" >/dev/null; then
 
         if (( CURRENT_TIME >= ALERT_TIMESTAMP && CURRENT_TIME < ALERT_TIMESTAMP + 60 )); then
             /usr/bin/echo "Showing restart aleart for $LOGIN_USER at $CURRENT_TIME"
-            DISPLAY=${DISPLAY} DBUS_SESSION_BUS_ADDRESS=${DBUS_ADDRESS} /usr/bin/zenity --warning --text="This machine is reserve for exam at $EXAM_TIME.\n\nAutomatic restart in 5 minutes.\nPlease logout.\n\nThank you"
+            sudo -u $LOGIN_USER DISPLAY=${DISPLAY} DBUS_SESSION_BUS_ADDRESS=${DBUS_ADDRESS} /usr/bin/zenity --warning --text="This machine is reserve for exam at $EXAM_TIME.\n\nAutomatic restart in 5 minutes.\nPlease logout.\n\nThank you"
         fi
 
         if (( CURRENT_TIME >= AUTOMATIC_RESTART_TIME && CURRENT_TIME < AUTOMATIC_RESTART_TIME + 60 )); then
             # reboot
             /usr/bin/echo "Rebooting at $CURRENT_TIME"
-            DISPLAY=${DISPLAY} DBUS_SESSION_BUS_ADDRESS=${DBUS_ADDRESS} /usr/bin/zenity --info --text="REBOOTING"
+            sudo -u $LOGIN_USER DISPLAY=${DISPLAY} DBUS_SESSION_BUS_ADDRESS=${DBUS_ADDRESS} /usr/bin/zenity --info --text="REBOOTING"
         fi
 
     done
