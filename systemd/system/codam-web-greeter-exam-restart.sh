@@ -25,10 +25,10 @@ if /usr/bin/jq -e 'has("exams_for_host")' "$DATA_FILE" >/dev/null; then
         ALERT_TIMESTAMP=$((EXAM_TIMESTAMP - 1200)) # 1200 seconds = 20 minutes
         AUTOMATIC_RESTART_TIME=$((ALERT_TIMESTAMP + 300 )) # 300 seconds = 5 minutes
         
-        /usr/bin/echo "CURRENT_TIME: $CURRENT_TIME"
-        /usr/bin/echo "EXAM_TIMESTAMP: $EXAM_TIMESTAMP"
-        /usr/bin/echo "ALERT_TIMESTAMP: $ALERT_TIMESTAMP"
-        /usr/bin/echo "ALERT_TIMESTAMP: $((ALERT_TIMESTAMP + 60))"
+        /usr/bin/echo "CURRENT_TIME          : $CURRENT_TIME"
+        /usr/bin/echo "EXAM_TIMESTAMP        : $EXAM_TIMESTAMP"
+        /usr/bin/echo "ALERT_TIMESTAMP       : $ALERT_TIMESTAMP"
+        /usr/bin/echo "ALERT_TIMESTAMP       : $((ALERT_TIMESTAMP + 60))"
         /usr/bin/echo "AUTOMATIC_RESTART_TIME: $AUTOMATIC_RESTART_TIME"
 
         if (( CURRENT_TIME >= ALERT_TIMESTAMP && CURRENT_TIME < ALERT_TIMESTAMP + 60 )); then
