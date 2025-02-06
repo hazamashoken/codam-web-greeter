@@ -6,17 +6,15 @@ set -e
 
 DATA_FILE="/usr/share/web-greeter/themes/codam/data.json"
 
-DATA=$(/usr/bin/cat "$DATA_FILE")
-
 # Checking if 
 CURRENT_TIME=$(/usr/bin/date -u +"%s")
 
 
 
 # Check if exams_for_host exists
-if /usr/bin/jq -e 'has("exams_for_host")' "$DATA" >/dev/null; then
+if /usr/bin/jq -e 'has("exams_for_host")' "$DATA_FILE" >/dev/null; then
     # Parse JSON and get exam begin times
-    EXAM_TIMES=$(/usr/bin/jq -r '.exams_for_host[].begin_at' "$DATA")
+    EXAM_TIMES=$(/usr/bin/jq -r '.exams_for_host[].begin_at' "$DATA_FILE")
 
     /usr/bin/echo "Exam exist for this host"
 
