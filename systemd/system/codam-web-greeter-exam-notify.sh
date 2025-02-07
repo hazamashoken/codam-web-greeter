@@ -31,6 +31,7 @@ if /usr/bin/jq -e 'has("exams_for_host")' "$DATA_FILE" >/dev/null; then
         if (( CURRENT_TIME >= ALERT_TIMESTAMP && CURRENT_TIME < ALERT_TIMESTAMP + 60 )); then
             /usr/bin/echo "Showing restart aleart for $LOGIN_USER at $CURRENT_TIME"
             TIME_MSG=$(/usr/bin/date -u )
+            sudo -u $LOGIN_USER DISPLAY=${DISPLAY} DBUS_SESSION_BUS_ADDRESS=${DBUS_ADDRESS} /usr/bin/notify-send -t 0 -u critical -a "Exam" "Exam Annoucemnt" "This machine is reserve for $EXAM_NAME.\nAutomatic restart in 5 minutes.\nPlease logout.\nThank you"
             sudo -u $LOGIN_USER DISPLAY=${DISPLAY} DBUS_SESSION_BUS_ADDRESS=${DBUS_ADDRESS} /usr/bin/zenity --warning --text="This machine is reserve for $EXAM_NAME.\n\nAutomatic restart in 5 minutes.\nPlease logout.\n\nThank you"
         fi
 
