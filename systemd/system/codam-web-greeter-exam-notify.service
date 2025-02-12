@@ -1,0 +1,13 @@
+[Unit]
+Description=Automatic restart for exam
+After=graphical.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+Environment="DISPLAY=:0"
+ExecStart=/usr/bin/bash /usr/share/codam/codam-web-greeter-exam-notify.sh
+
+[Install]
+WantedBy=multi-user.target

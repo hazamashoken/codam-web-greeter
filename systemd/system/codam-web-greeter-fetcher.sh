@@ -15,10 +15,10 @@ DATA=$(/usr/bin/curl -s "$DATA_SERVER_URL")
 
 # Check if the data is valid JSON
 if ! /usr/bin/jq -e . >/dev/null 2>&1 <<<"$DATA"; then
-	/usr/bin/echo "Invalid JSON data received from data server"
-	exit 1
+  /usr/bin/echo "Invalid JSON data received from data server"
+  exit 1
 else
-	/usr/bin/echo "Valid JSON data received from data server"
+  /usr/bin/echo "Valid JSON data received from data server"
 fi
 
 # Create a file for the data with the correct permissions and store the data in it
@@ -29,3 +29,4 @@ DATA_FILE="/usr/share/web-greeter/themes/codam/data.json"
 /usr/bin/echo "$DATA" > "$DATA_FILE"
 
 /usr/bin/echo "Data fetched successfully and saved to $DATA_FILE"
+

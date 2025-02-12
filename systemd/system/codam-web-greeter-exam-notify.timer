@@ -1,0 +1,10 @@
+[Unit]
+Description=Log users out after a period of inactivity
+After=graphical.target
+
+[Timer]
+OnCalendar=*-*-* *:*:00
+Unit=codam-web-greeter-exam-notify.service
+
+[Install]
+WantedBy=multi-user.target

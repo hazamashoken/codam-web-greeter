@@ -28,6 +28,8 @@ fi
 
 # Install service scripts to /usr/share/codam
 /usr/bin/mkdir -p /usr/share/codam
+/usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-exam-notify.sh" /usr/share/codam/codam-web-greeter-exam-notify.sh
+/usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-exam-restart.sh" /usr/share/codam/codam-web-greeter-exam-restart.sh
 /usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-fetcher.sh" /usr/share/codam/codam-web-greeter-fetcher.sh
 /usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-idler.sh" /usr/share/codam/codam-web-greeter-idler.sh
 /usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-lockscreen.sh" /usr/share/codam/codam-web-greeter-lockscreen.sh
@@ -64,6 +66,10 @@ DATA_FILE="$WEB_GREETER_DIR/data.json"
 /usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-idler.timer" /etc/systemd/system/codam-web-greeter-idler.timer
 /usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-lockscreen.service" /etc/systemd/system/codam-web-greeter-lockscreen.service
 /usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-lockscreen.timer" /etc/systemd/system/codam-web-greeter-lockscreen.timer
+/usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-exam-restart.service" /etc/systemd/system/codam-web-greeter-exam-restart.service
+/usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-exam-restart.timer" /etc/systemd/system/codam-web-greeter-exam-restart.timer
+/usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-exam-notify.service" /etc/systemd/system/codam-web-greeter-exam-notify.service
+/usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-exam-notify.timer" /etc/systemd/system/codam-web-greeter-exam-notify.timer
 
 # Install systemd user service
 /usr/bin/cp "$ROOT_DIR/user/codam-web-greeter.service" /etc/systemd/user/codam-web-greeter.service
@@ -79,6 +85,10 @@ DATA_FILE="$WEB_GREETER_DIR/data.json"
 /usr/bin/systemctl start codam-web-greeter-idler.timer
 /usr/bin/systemctl enable codam-web-greeter-lockscreen.timer
 /usr/bin/systemctl start codam-web-greeter-lockscreen.timer
+/usr/bin/systemctl enable codam-web-greeter-exam-restart.timer
+/usr/bin/systemctl start codam-web-greeter-exam-restart.timer
+/usr/bin/systemctl enable codam-web-greeter-exam-notify.timer
+/usr/bin/systemctl start codam-web-greeter-exam-notify.timer
 
 # Fetch data for the first time (in the background)
 /usr/bin/systemctl start codam-web-greeter.service &
