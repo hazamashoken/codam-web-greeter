@@ -81,16 +81,25 @@ async function initGreeter(): Promise<void> {
 		if (e.ctrlKey && e.altKey) { // Special keybinds
 			switch (e.key) {
 				case 'Delete': // Ctrl + Alt + Delete = reboot computer
-					window.ui.setDebugInfo('Reboot requested through LightDM');
-					window.restartComputer();
+					if (window.debugKeys) {
+						window.ui.setDebugInfo('Reboot requested through LightDM');
+						window.restartComputer();
+					}
 					break;
 				case 'e': // Ctrl + Alt + E = override exam mode
-					window.ui.setDebugInfo('Exam mode override enabled');
-					window.ui.overrideExamMode();
+					if (window.debugKeys) {
+						window.ui.setDebugInfo('Exam mode override enabled');
+						window.ui.overrideExamMode();
+					}
 					break;
 				case 'd': // Ctrl + Alt + D = debug keys: show pressed key in debug info
 					window.debugKeys = (window.debugKeys) ? false : true;
 					window.ui.setDebugInfo(`Debug keys: ${(window.debugKeys ? 'enabled' : 'disabled')}`);
+					break;
+				case 'l':
+					if (window.debugKeys) {
+						// Todo add a force logout 
+					}
 					return;
 			}
 		}
