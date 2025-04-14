@@ -38,7 +38,7 @@ while IFS= read -r line; do
 	# 42Singapore: Ad Hoc method to lockscreen idle user after 3 minutes
 	# if the screen blanks on the lock screen use '/usr/bin/dm-tool switch-to-greeter' instead: https://github.com/hazamashoken/codam-web-greeter/tree/main?tab=readme-ov-file#the-screen-blanks-on-the-lock-screen
 	# Check if session has been idle for long enough
-	MAX_IDLE_SCREENLOCK_TIME_MINUTES=$((10))
+	MAX_IDLE_SCREENLOCK_TIME_MINUTES=$((7))
 	MAX_IDLE_SCREENLOCK_TIME=$((MAX_IDLE_SCREENLOCK_TIME_MINUTES * 60 * 1000))
 	LOCK_STATUS_FILE="/tmp/codam_web_greeter_lockscreen_status_$USERNAME"
 

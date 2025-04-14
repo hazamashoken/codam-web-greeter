@@ -34,7 +34,7 @@ while IFS= read -r line; do
 	fi
 
 	# Check if session has been idle for long enough
-	MAX_IDLE_TIME_MINUTES=$((20))
+	MAX_IDLE_TIME_MINUTES=$((42))
 	MAX_IDLE_TIME=$((MAX_IDLE_TIME_MINUTES * 60 * 1000))
 	if [ "$IDLE_TIME" -gt "$MAX_IDLE_TIME" ] || [ "$TIME_SINCE_LOCK" -gt "$MAX_IDLE_TIME" ]; then
 		/usr/bin/echo "Session for user $USERNAME has been idle for over 42 minutes (idletime $IDLE_TIME ms, time_since_lock $TIME_SINCE_LOCK ms), forcing logout now by restarting lightdm"
