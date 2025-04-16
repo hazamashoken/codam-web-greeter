@@ -15,8 +15,8 @@ DBUS_ADDRESS=unix:path=/run/user/$(id -u ${LOGIN_USER})/bus
 # Check if exams_for_host exists
 if /usr/bin/jq -e 'has("exams_for_host")' "$DATA_FILE" >/dev/null; then
     # Parse JSON and get exam begin times
-    EXAM_TIMES=$(/usr/bin/jq -r '.exams_for_host[].begin_at' "$DATA_FILE")
-    EXAM_NAMES=$(/usr/bin/jq -r '.exams_for_host[].name' "$DATA_FILE")
+    readarray -t EXAM_TIMES < <(/usr/bin/jq -r '.exams_for_host[].begin_at' "$DATA_FILE")
+    readarray -t EXAM_NAMES < <(/usr/bin/jq -r '.exams_for_host[].name' "$DATA_FILE")
 
     /usr/bin/echo "Exam exist for this host"
 
