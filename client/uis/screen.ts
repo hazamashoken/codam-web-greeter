@@ -25,6 +25,7 @@ export interface UIExamModeElements {
 	loginInput: HTMLInputElement;
 	passwordInput: HTMLInputElement;
 	examStartButton: HTMLButtonElement;
+	examStartTimer: HTMLParagraphElement;
 }
 
 export abstract class UIScreen {
