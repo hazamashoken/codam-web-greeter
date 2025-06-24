@@ -9,10 +9,10 @@ WHO_OUTPUT=$(/usr/bin/who)
 # Loop through output
 while IFS= read -r line; do
 	# Get username
-	USERNAME=$(echo "$line" | awk '{print $1}')
+	USERNAME=$(/usr/bin/echo "$line" | /usr/bin/awk '{print $1}')
 	# Get display (everything between () and remove the ())
 	# Cannot use awk here to print a specific column because columns might contain spaces...
-	DISPLAY=$(echo "$line" | sed -n 's/.*(\(.*\))/\1/p')
+	DISPLAY=$(/usr/bin/echo "$line" | /usr/bin/sed -n 's/.*(\(.*\))/\1/p')
 	# Go to next line if display does not start with :
 	if ! [[ "$DISPLAY" =~ ^: ]]; then
 		continue
@@ -29,8 +29,14 @@ while IFS= read -r line; do
 	if [ -f "/tmp/codam_web_greeter_lock_timestamp_$USERNAME" ]; then
 		# Get the locked_at_timestamp from the file
 		LOCKED_AT_TIMESTAMP=$(/usr/bin/awk '{print $1}' "/tmp/codam_web_greeter_lock_timestamp_$USERNAME")
-		# Calculate the time since the session was locked
-		TIME_SINCE_LOCK=$((($(date +%s) - LOCKED_AT_TIMESTAMP) * 1000))
+		# Sanitize the timestamp to ensure it's a number
+		if [[ "$LOCKED_AT_TIMESTAMP" =~ ^[0-9]+$ ]]; then
+			# Calculate the time since the session was locked
+			TIME_SINCE_LOCK=$((($(/usr/bin/date +%s) - LOCKED_AT_TIMESTAMP) * 1000))
+		else
+			/usr/bin/echo "Warning: Invalid timestamp in /tmp/codam_web_greeter_lock_timestamp_$USERNAME: $LOCKED_AT_TIMESTAMP" >&2
+			TIME_SINCE_LOCK=0
+		fi
 	fi
 
 	# Check if session has been idle for long enough
