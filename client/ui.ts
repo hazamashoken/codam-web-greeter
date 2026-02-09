@@ -33,9 +33,10 @@ export class UI {
 		this.applyHiDpiScaling();
 
 		// Set up logo
-		if (data.logo.exists) {
-			this._logo.src = data.logo.path;
-		}
+		this._logo.src = data.logo.path;
+		this._logo.addEventListener('error', () => {
+			console.log(`Logo image not found at ${data.logo.path}`);
+		});
 
 		// Check for active sessions
 		const activeSession = lightdm.users.find((user: LightDMUser) => user.logged_in);
@@ -91,6 +92,7 @@ export class UI {
 	}
 
 	public setDebugInfo(info: string): void {
+		console.log("Debug info:", info);
 		this._infoBars.setDebugInfo(info);
 	}
 

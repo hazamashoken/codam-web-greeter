@@ -34,6 +34,8 @@ fi
 /usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-idler.sh" /usr/share/codam/codam-web-greeter-idler.sh
 /usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-lockscreen.sh" /usr/share/codam/codam-web-greeter-lockscreen.sh
 /usr/bin/chmod 700 /usr/share/codam/codam-web-greeter-idler.sh
+/usr/bin/cp "$ROOT_DIR/system/codam-web-greeter-idler-hook.sh" /usr/share/codam/codam-web-greeter-idler-hook.sh
+/usr/bin/chmod 500 /usr/share/codam/codam-web-greeter-idler-hook.sh
 /usr/bin/cp "$ROOT_DIR/user/codam-web-greeter-init.sh" /usr/share/codam/codam-web-greeter-init.sh
 /usr/bin/cp "$ROOT_DIR/user/codam-web-greeter-cleanup.sh" /usr/share/codam/codam-web-greeter-cleanup.sh
 
