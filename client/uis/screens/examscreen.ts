@@ -78,14 +78,11 @@ export class ExamModeUI extends UIScreen {
     if (window.data.examLockScreenWallpaper) {
       let wallpaper: GreeterImage = window.data.examLockScreenWallpaper;
       let stripe: GreeterImage = window.data.examStripe;
-      if (wallpaper.exists) {
-        document.body.style.backgroundImage = 'url("' + wallpaper.path + '")';
-      }
+      document.body.style.backgroundImage = 'url("' + wallpaper.path + '")';
       let intraCalendar = document.getElementById("intra-calendar");
       if (intraCalendar) {
         intraCalendar.style.display = "none";
       }
-      if (stripe.exists) {
         let top = document.getElementById("top-stripe");
         let bottom = document.getElementById("bottom-stripe");
         if (top && bottom) {
@@ -94,7 +91,6 @@ export class ExamModeUI extends UIScreen {
           top.style.backgroundSize = "150px";
           bottom.style.backgroundSize = "150px";
         }
-      }
     }
 
     this._examMode = true;
@@ -109,12 +105,7 @@ export class ExamModeUI extends UIScreen {
    */
   public disableExamMode(): void {
     let wallpaper: GreeterImage = window.data.loginScreenWallpaper;
-    if (wallpaper.exists) {
-      document.body.style.backgroundImage = 'url("' + wallpaper.path + '")';
-    } else {
-      document.body.style.backgroundColor = "black";
-      document.body.style.backgroundImage = "none";
-    }
+    document.body.style.backgroundImage = 'url("' + wallpaper.path + '")';
     let intraCalendar = document.getElementById("intra-calendar");
     if (intraCalendar) {
       intraCalendar.style.removeProperty("display");
