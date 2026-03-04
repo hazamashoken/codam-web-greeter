@@ -1,6 +1,6 @@
-import { Express } from 'express';
+import { Express, NextFunction, Request, Response } from 'express';
 import { Config, ConfigError, Event42, Exam42 } from './interfaces';
-import { getCurrentExams, getExamForHostName, getHostNameFromRequest, hostNameToIp, examAvailableForHost, getMessageForHostName } from './utils';
+import { getCurrentExams, getExamForHostName, getHostNameFromRequest, getIpFromRequest, hostNameToIp, examAvailableForHost, getMessageForHostName } from './utils';
 import { fetchEvents, fetchExams, fetchUserImage } from './intra';
 
 // Intra API
@@ -12,18 +12,159 @@ import NodeCache from 'node-cache';
 const cacheTTL = 900; // 15 minutes
 const cache = new NodeCache({ stdTTL: cacheTTL });
 
-const FOUND_HOSTS: string[] = [];
+const FOUND_HOSTS = new Set<string>();
+const rateLimitCache = new NodeCache({ stdTTL: 60, useClones: false });
+
+const RATE_LIMIT_WINDOW_MS = Number(process.env.RATE_LIMIT_WINDOW_MS ?? '60000');
+const RATE_LIMIT_CONFIG_MAX = Number(process.env.RATE_LIMIT_CONFIG_MAX ?? '60');
+const RATE_LIMIT_USER_IMAGE_MAX = Number(process.env.RATE_LIMIT_USER_IMAGE_MAX ?? '30');
+const READINESS_MAX_CACHE_AGE_SECONDS = Number(process.env.READINESS_MAX_CACHE_AGE_SECONDS ?? '3600');
+const INTRA_INIT_RETRY_DELAY_MS = Number(process.env.INTRA_INIT_RETRY_DELAY_MS ?? '60000');
+const API_KEY = process.env.API_KEY?.trim();
+
+let intraInitInProgress = false;
+let intraInitLastSuccessAt: Date | null = null;
+let intraInitLastError: string | null = null;
+let intraRetryTimeout: ReturnType<typeof setTimeout> | null = null;
+
+interface RateLimitEntry {
+	count: number;
+	resetAt: number;
+}
+
+const normalizePositiveInteger = function(value: number, fallback: number): number {
+	if (!Number.isFinite(value) || value <= 0) {
+		return fallback;
+	}
+	return Math.floor(value);
+};
+
+const RATE_LIMIT_WINDOW_MS_NORMALIZED = normalizePositiveInteger(RATE_LIMIT_WINDOW_MS, 60000);
+const RATE_LIMIT_CONFIG_MAX_NORMALIZED = normalizePositiveInteger(RATE_LIMIT_CONFIG_MAX, 60);
+const RATE_LIMIT_USER_IMAGE_MAX_NORMALIZED = normalizePositiveInteger(RATE_LIMIT_USER_IMAGE_MAX, 30);
+const READINESS_MAX_CACHE_AGE_SECONDS_NORMALIZED = normalizePositiveInteger(READINESS_MAX_CACHE_AGE_SECONDS, 3600);
+const INTRA_INIT_RETRY_DELAY_MS_NORMALIZED = normalizePositiveInteger(INTRA_INIT_RETRY_DELAY_MS, 60000);
+
+const getErrorMessage = function(err: unknown): string {
+	if (err instanceof Error) {
+		return err.message;
+	}
+	return String(err);
+};
+
+const buildRateLimiter = function(scope: string, maxRequests: number) {
+	return function(req: Request, res: Response, next: NextFunction): void {
+		const clientIp = getIpFromRequest(req) ?? 'unknown';
+		const cacheKey = `ratelimit:${scope}:${clientIp}`;
+		const now = Date.now();
+		const windowMs = RATE_LIMIT_WINDOW_MS_NORMALIZED;
+
+		let entry = rateLimitCache.get<RateLimitEntry>(cacheKey);
+		if (!entry || entry.resetAt <= now) {
+			entry = { count: 0, resetAt: now + windowMs };
+		}
+
+		entry.count += 1;
+		const ttlSeconds = Math.max(1, Math.ceil((entry.resetAt - now) / 1000));
+		rateLimitCache.set(cacheKey, entry, ttlSeconds);
+
+		const remaining = Math.max(0, maxRequests - entry.count);
+		res.setHeader('X-RateLimit-Limit', maxRequests.toString());
+		res.setHeader('X-RateLimit-Remaining', remaining.toString());
+		res.setHeader('X-RateLimit-Reset', Math.ceil(entry.resetAt / 1000).toString());
+
+		if (entry.count > maxRequests) {
+			res.setHeader('Retry-After', ttlSeconds.toString());
+			res.status(429).send({ error: 'Too many requests, please retry later' });
+			return;
+		}
+
+		next();
+	};
+};
+
+const requireApiKeyIfConfigured = function(req: Request, res: Response, next: NextFunction): void {
+	if (!API_KEY) {
+		next();
+		return;
+	}
+
+	const headerApiKey = req.headers['x-api-key'];
+	const providedApiKey = typeof headerApiKey === 'string'
+		? headerApiKey
+		: Array.isArray(headerApiKey) ? headerApiKey[0] : undefined;
+
+	const authHeader = req.headers.authorization;
+	const providedBearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice('Bearer '.length).trim() : undefined;
+
+	if (providedApiKey === API_KEY || providedBearerToken === API_KEY) {
+		next();
+		return;
+	}
+
+	res.status(401).send({ error: 'Unauthorized' });
+};
+
+const configRateLimiter = buildRateLimiter('config', RATE_LIMIT_CONFIG_MAX_NORMALIZED);
+const userImageRateLimiter = buildRateLimiter('user-image', RATE_LIMIT_USER_IMAGE_MAX_NORMALIZED);
 
 export default (app: Express) => {
 	// Initialize
-	setUpIntraAPI();
+	void setUpIntraAPI();
 
 	// Define routes
 	app.get('/', (req, res) => {
 		res.send({ status: 'ok' });
 	});
 
-	app.get('/api/config/:hostname?', async (req, res) => {
+	app.get('/health/live', (req, res) => {
+		return res.send({
+			status: 'ok',
+			uptime_seconds: Math.floor(process.uptime()),
+		});
+	});
+
+	app.get('/health/ready', (req, res) => {
+		const events = cache.get<Event42[]>('events');
+		const exams = cache.get<Exam42[]>('exams');
+		const lastCacheChange = cache.get<Date>('last-cache-change');
+		const cacheAgeSeconds = lastCacheChange instanceof Date
+			? Math.floor((Date.now() - lastCacheChange.getTime()) / 1000)
+			: null;
+
+		const ready = Boolean(api)
+			&& Boolean(events)
+			&& Boolean(exams)
+			&& cacheAgeSeconds !== null
+			&& cacheAgeSeconds <= READINESS_MAX_CACHE_AGE_SECONDS_NORMALIZED
+			&& !intraInitInProgress;
+
+		const payload = {
+			status: ready ? 'ok' : 'not-ready',
+			intra_api_ready: Boolean(api),
+			intra_init_in_progress: intraInitInProgress,
+			intra_last_success_at: intraInitLastSuccessAt,
+			intra_last_error: intraInitLastError,
+			cache: {
+				events: Array.isArray(events) ? events.length : null,
+				exams: Array.isArray(exams) ? exams.length : null,
+				last_cache_change: lastCacheChange ?? null,
+				cache_age_seconds: cacheAgeSeconds,
+				max_cache_age_seconds: READINESS_MAX_CACHE_AGE_SECONDS_NORMALIZED,
+			},
+		};
+
+		if (!ready) {
+			return res.status(503).send(payload);
+		}
+		return res.send(payload);
+	});
+
+	app.get('/api/config/:hostname?', requireApiKeyIfConfigured, configRateLimiter, async (req, res) => {
+		if (!api && !intraInitInProgress) {
+			void setUpIntraAPI();
+		}
+
 		const hostname = await getHostNameFromRequest(req);
 
 		let events = cache.get<Event42[]>('events');
@@ -47,9 +188,9 @@ export default (app: Express) => {
 			return res.status(503).send(cError);
 		}
 
-		if (FOUND_HOSTS.includes(hostname) === false) {
+		if (!FOUND_HOSTS.has(hostname)) {
 			console.log(`Found new hostname: ${hostname}`);
-			FOUND_HOSTS.push(hostname);
+			FOUND_HOSTS.add(hostname);
 		}
 
 		const config: Config = {
@@ -63,7 +204,11 @@ export default (app: Express) => {
 		res.send(config);
 	});
 
-	app.get('/api/exam_mode_hosts', async (req, res) => {
+	app.get('/api/exam_mode_hosts', requireApiKeyIfConfigured, async (req, res) => {
+		if (!api && !intraInitInProgress) {
+			void setUpIntraAPI();
+		}
+
 		// Check cache first
 		if (cache.has('examModeHosts')) {
 			const ret = cache.get<any>('examModeHosts')
@@ -87,7 +232,7 @@ export default (app: Express) => {
 
 		// Calculate which hosts are in exam mode
 		const examModeHosts: string[] = [];
-		for (const hostname of FOUND_HOSTS) {
+		for (const hostname of FOUND_HOSTS.values()) {
 			const ipAddress = await hostNameToIp(hostname);
 			if (!ipAddress) {
 				continue;
@@ -107,7 +252,11 @@ export default (app: Express) => {
 		return res.send(ret);
 	});
 
-	app.get('/api/user/:login/.face', async (req, res) => {
+	app.get('/api/user/:login/.face', requireApiKeyIfConfigured, userImageRateLimiter, async (req, res) => {
+		if (!api && !intraInitInProgress) {
+			void setUpIntraAPI();
+		}
+
 		const login = req.params.login;
 		if (!login) {
 			return res.status(400).send({ error: 'No login provided' });
@@ -131,8 +280,15 @@ export default (app: Express) => {
 };
 
 const setUpIntraAPI = async function() {
+	if (intraInitInProgress) {
+		return;
+	}
+
+	intraInitInProgress = true;
 	try {
-		console.log(`Using Intra API UID: ${process.env.INTRA_API_UID}`);
+		if (!process.env.INTRA_API_UID || !process.env.INTRA_API_SECRET) {
+			throw new Error('Missing INTRA_API_UID or INTRA_API_SECRET');
+		}
 
 		api = await new Fast42([{
 			client_id: process.env.INTRA_API_UID!,
@@ -153,10 +309,29 @@ const setUpIntraAPI = async function() {
 			cache.set('exams', exams);
 			cache.set('last-cache-change', new Date());
 		}
+
+		intraInitLastSuccessAt = new Date();
+		intraInitLastError = null;
+
+		if (intraRetryTimeout) {
+			clearTimeout(intraRetryTimeout);
+			intraRetryTimeout = null;
+		}
 	}
 	catch(err) {
 		console.warn("[WARNING] Could not initialize Intra API, some features might not work");
 		console.error(err);
 		api = undefined; // unset api
+		intraInitLastError = getErrorMessage(err);
+
+		if (!intraRetryTimeout) {
+			intraRetryTimeout = setTimeout(() => {
+				intraRetryTimeout = null;
+				void setUpIntraAPI();
+			}, INTRA_INIT_RETRY_DELAY_MS_NORMALIZED);
+		}
+	}
+	finally {
+		intraInitInProgress = false;
 	}
 };

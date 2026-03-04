@@ -1,11 +1,27 @@
 import dotenv from 'dotenv';
-dotenv.config({ path: '.env', debug: true }); // Load .env file
+dotenv.config({ path: '.env', debug: process.env.NODE_ENV !== 'production' }); // Load .env file
 
 import express from 'express';
-import { fetchEvents, fetchExams } from './intra.js';
 
 // Set up express app
 const app = express();
+
+const parseTrustProxy = function(value: string): boolean | number | string {
+	const trustProxy = value.trim().toLowerCase();
+	if (trustProxy === 'true') {
+		return true;
+	}
+	if (trustProxy === 'false') {
+		return false;
+	}
+	if (/^\d+$/.test(trustProxy)) {
+		return Number(trustProxy);
+	}
+	return value;
+};
+
+const trustProxy = parseTrustProxy(process.env.TRUST_PROXY ?? 'loopback, linklocal, uniquelocal');
+app.set('trust proxy', trustProxy);
 
 // Set up express middleware
 app.use(express.json());

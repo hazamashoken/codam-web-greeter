@@ -6,14 +6,21 @@ set -e
 # Get the data-server-url variable from the config file and append the hostname
 DATA_SERVER_URL=$(/usr/bin/grep -Po '(?<=data-server-url=).*' /usr/share/web-greeter/themes/codam/settings.ini | /usr/bin/sed 's/^"\(.*\)"$/\1/')
 DATA_SERVER_URL="$DATA_SERVER_URL$(/usr/bin/hostname)"
+DATA_SERVER_API_KEY=$(/usr/bin/grep -Po '(?<=data-server-api-key=).*' /usr/share/web-greeter/themes/codam/settings.ini 2>/dev/null | /usr/bin/sed 's/^"\(.*\)"$/\1/' || true)
 
 /usr/bin/echo "Starting run at $(/usr/bin/date)"
 /usr/bin/echo "Fetching data from $DATA_SERVER_URL..."
 
 # Get the data from the data server
+if [ -n "${DATA_SERVER_API_KEY}" ]; then
+	CURL_AUTH_HEADER=(--header "X-API-Key: ${DATA_SERVER_API_KEY}")
+else
+	CURL_AUTH_HEADER=()
+fi
+
 if ! DATA=$(/usr/bin/curl --fail --show-error --silent \
   --connect-timeout 5 --max-time 20 --retry 2 --retry-delay 1 \
-  "$DATA_SERVER_URL"); then
+  "${CURL_AUTH_HEADER[@]}" "$DATA_SERVER_URL"); then
   /usr/bin/echo "Failed to fetch data from data server"
   exit 1
 fi

@@ -3,6 +3,7 @@ import express from 'express';
 import { ExamForHost, Exam42 } from './interfaces';
 import ipRangeCheck from 'ip-range-check';
 import dns from 'dns';
+import net from 'net';
 
 export const EXAM_MODE_ENABLED = process.env.EXAM_MODE_ENABLED === 'true' || false;
 
@@ -32,19 +33,26 @@ export const hostNameToIp = async function(hostName: string): Promise<string | n
 }
 
 export const getIpFromRequest = function(req: express.Request): string | null {
-	let ip = null;
-	if ('x-forwarded-for' in req.headers) {
-		if (typeof req.headers['x-forwarded-for'] === 'string') {
-			ip = req.headers['x-forwarded-for'].split(',')[0];
+	const normalizeIp = function(ip: string | null | undefined): string | null {
+		if (!ip) {
+			return null;
 		}
-		else if (Array.isArray(req.headers['x-forwarded-for'])) {
-			ip = req.headers['x-forwarded-for'][0];
+
+		let normalizedIp = ip.trim();
+		if (normalizedIp.includes(',')) {
+			normalizedIp = normalizedIp.split(',')[0].trim();
 		}
-	}
-	else if ('remoteAddress' in req.socket) {
-		ip = req.socket.remoteAddress;
-	}
-	return ip ?? null;
+		if (normalizedIp.startsWith('::ffff:')) {
+			normalizedIp = normalizedIp.slice(7);
+		}
+		if (normalizedIp.includes('%')) {
+			normalizedIp = normalizedIp.split('%')[0];
+		}
+
+		return net.isIP(normalizedIp) ? normalizedIp : null;
+	};
+
+	return normalizeIp(req.ip) ?? normalizeIp(req.socket.remoteAddress);
 }
 
 export const getHostNameFromRequest = async function(req: express.Request): Promise<string> {

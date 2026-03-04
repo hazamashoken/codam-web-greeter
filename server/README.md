@@ -29,8 +29,28 @@ The back-end server provides data for the greeter to display, such as events and
 6. Run `npm run start` in this directory
 7. The server should now be running on port 3000
 
+### Optional environment variables
+These can be set in `.env` in addition to the required Intra variables:
+
+- `TRUST_PROXY` (default: `loopback, linklocal, uniquelocal`): Express `trust proxy` setting.
+- `RATE_LIMIT_WINDOW_MS` (default: `60000`): rate-limit window for protected endpoints.
+- `RATE_LIMIT_CONFIG_MAX` (default: `60`): max requests per window for `/api/config/:hostname?`.
+- `RATE_LIMIT_USER_IMAGE_MAX` (default: `30`): max requests per window for `/api/user/:login/.face`.
+- `READINESS_MAX_CACHE_AGE_SECONDS` (default: `3600`): readiness threshold for cached data age.
+- `INTRA_INIT_RETRY_DELAY_MS` (default: `60000`): retry interval for Intra API initialization.
+- `API_KEY` (optional): if set, all `/api/*` routes require `X-API-Key` or `Authorization: Bearer <key>`.
+
 
 ## API
+### `/health/live`
+Returns liveness status and uptime. This endpoint does not depend on Intra cache readiness.
+
+### `/health/ready`
+Returns readiness status for the API process:
+- Intra API client initialized.
+- Cached `events` and `exams` present.
+- Cache age is below `READINESS_MAX_CACHE_AGE_SECONDS`.
+
 ### `/api/config/:hostname?`
 Request data to be displayed by the greeter for the given hostname. If no hostname is given, the IP address from the request is parsed and used instead (if possible).
 

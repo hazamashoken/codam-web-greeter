@@ -49,6 +49,7 @@ fi
 
 # Get the data-server-url variable from the config file, remove /config/ from the url
 DATA_SERVER_URL=$(/usr/bin/grep -Po '(?<=data-server-url=).*' /usr/share/web-greeter/themes/codam/settings.ini | /usr/bin/sed 's/^"\(.*\)"$/\1/' | /usr/bin/sed 's/\/config//')
+DATA_SERVER_API_KEY=$(/usr/bin/grep -Po '(?<=data-server-api-key=).*' /usr/share/web-greeter/themes/codam/settings.ini 2>/dev/null | /usr/bin/sed 's/^"\(.*\)"$/\1/' || true)
 
 # Download the user's profile picture from Intra if no .face file exists in the home directory
 if [ ! -f "$FACE_PATH" ]; then
@@ -57,9 +58,14 @@ if [ ! -f "$FACE_PATH" ]; then
 	# Get the user's profile picture from Intra through the clusterdata server
 	IMAGE_URL="${DATA_SERVER_URL}user/$USER/.face"
 	/usr/bin/echo "Downloading user image from $IMAGE_URL to $FACE_PATH"
+	if [ -n "${DATA_SERVER_API_KEY}" ]; then
+		CURL_AUTH_HEADER=(--header "X-API-Key: ${DATA_SERVER_API_KEY}")
+	else
+		CURL_AUTH_HEADER=()
+	fi
 	/usr/bin/curl --location --fail --show-error --silent \
 		--connect-timeout 5 --max-time 20 --retry 2 --retry-delay 1 \
-		"$IMAGE_URL" -o "$FACE_PATH" || true # Prevent curl from erroring out if the download fails
+		"${CURL_AUTH_HEADER[@]}" "$IMAGE_URL" -o "$FACE_PATH" || true # Prevent curl from erroring out if the download fails
 else
 	/usr/bin/echo "Existing user image found at $FACE_PATH, not overwriting it with a freshly downloaded copy"
 fi
