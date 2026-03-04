@@ -11,7 +11,12 @@ DATA_SERVER_URL="$DATA_SERVER_URL$(/usr/bin/hostname)"
 /usr/bin/echo "Fetching data from $DATA_SERVER_URL..."
 
 # Get the data from the data server
-DATA=$(/usr/bin/curl -s "$DATA_SERVER_URL")
+if ! DATA=$(/usr/bin/curl --fail --show-error --silent \
+  --connect-timeout 5 --max-time 20 --retry 2 --retry-delay 1 \
+  "$DATA_SERVER_URL"); then
+  /usr/bin/echo "Failed to fetch data from data server"
+  exit 1
+fi
 
 # Check if the data is valid JSON
 if ! /usr/bin/jq -e . >/dev/null 2>&1 <<<"$DATA"; then
@@ -29,4 +34,3 @@ DATA_FILE="/usr/share/web-greeter/themes/codam/data.json"
 /usr/bin/echo "$DATA" > "$DATA_FILE"
 
 /usr/bin/echo "Data fetched successfully and saved to $DATA_FILE"
-

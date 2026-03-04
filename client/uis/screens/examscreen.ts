@@ -134,8 +134,8 @@ export class ExamModeUI extends UIScreen {
   protected _initForm(): void {
     const form = this._form as UIExamModeElements;
 
-    // This event gets called when the user clicks the unlock button or submits the lock screen form in any other way
-    form.examStartButton.addEventListener("click", (event: Event) => {
+    // Handle form submission so both button click and Enter key trigger the same flow.
+    form.form.addEventListener("submit", (event: Event) => {
       event.preventDefault();
       if (this._examMode) {
         if (

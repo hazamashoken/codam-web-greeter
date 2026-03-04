@@ -17,12 +17,12 @@ export class WallpaperUI {
 		let wallpaper: GreeterImage = window.data.loginScreenWallpaper;
 		if (this._isLockScreen) {
 			this._blurFilter.style.display = 'block';
-			if (await window.data.userLockScreenWallpaper.exists) {
+			if (await window.data.userLockScreenWallpaper.exists()) {
 				wallpaper = window.data.userLockScreenWallpaper;
 			}
 		}
 
-		if (await wallpaper.exists) {
+		if (await wallpaper.exists()) {
 			// Set wallpaper (yes for some reason the file path just works without file://)
 			// Actually, file:// will even cause the image to not load.
 			this._element.style.backgroundImage = 'url("' + wallpaper.path + '")';

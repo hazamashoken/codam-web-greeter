@@ -57,7 +57,9 @@ if [ ! -f "$FACE_PATH" ]; then
 	# Get the user's profile picture from Intra through the clusterdata server
 	IMAGE_URL="${DATA_SERVER_URL}user/$USER/.face"
 	/usr/bin/echo "Downloading user image from $IMAGE_URL to $FACE_PATH"
-	/usr/bin/curl -L -s "$IMAGE_URL" -o "$FACE_PATH" || true # Prevent curl from erroring out if the download fails
+	/usr/bin/curl --location --fail --show-error --silent \
+		--connect-timeout 5 --max-time 20 --retry 2 --retry-delay 1 \
+		"$IMAGE_URL" -o "$FACE_PATH" || true # Prevent curl from erroring out if the download fails
 else
 	/usr/bin/echo "Existing user image found at $FACE_PATH, not overwriting it with a freshly downloaded copy"
 fi

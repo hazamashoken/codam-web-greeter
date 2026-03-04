@@ -71,7 +71,7 @@ export class LockScreenUI extends UIScreen {
 			form.avatar.addEventListener('error', () => {
 				form.avatar.src = "assets/default-user.png"; // Load fallback image
 			});
-			if (await window.data.userImage.exists) {
+			if (await window.data.userImage.exists()) {
 				// Show the user's avatar from the /tmp folder
 				form.avatar.src = window.data.userImage.path;
 			}
@@ -80,7 +80,7 @@ export class LockScreenUI extends UIScreen {
 				// The greeter does not have access to the user's home folder...
 				form.avatar.src = this._activeSession.image;
 			}
-			else if (await window.data.userDefaultImage.exists) {
+			else if (await window.data.userDefaultImage.exists()) {
 				form.avatar.src = window.data.userDefaultImage.path;
 			}
 			form.displayName.innerText = this._activeSession.display_name ?? this._activeSession.username;

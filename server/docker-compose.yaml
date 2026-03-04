@@ -6,13 +6,13 @@ services:
     restart: unless-stopped
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
     volumes:
       - ./.env:/app/.env
       - ./messages.json:/app/messages.json
     env_file:
       - .env
-    # exposes port 3000 on the container from the Dockerfile
+    # exposes port 3000 on the container from the dockerfile
 
   nginx:
     container_name: codam-web-greeter-proxy
