@@ -75,7 +75,7 @@ export interface Exam42 {
 	begin_at: string;
 	end_at: string;
 	location: string | null;
-	max_people: number;
+	max_people: number | null;
 	nbr_subscribers: number;
 	name: string;
 	created_at: string;
@@ -96,7 +96,142 @@ export interface DataJson {
 	exams_for_host: ExamForHost[];
 	fetch_time: string;
 	message: string;
+	degraded?: boolean;
+	warnings?: string[];
 }
+
+const isRecord = function(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null;
+};
+
+const isString = function(value: unknown): value is string {
+	return typeof value === 'string';
+};
+
+const isNumber = function(value: unknown): value is number {
+	return typeof value === 'number' && Number.isFinite(value);
+};
+
+const isStringArray = function(value: unknown): value is string[] {
+	return Array.isArray(value) && value.every((item) => typeof item === 'string');
+};
+
+const isNumberArray = function(value: unknown): value is number[] {
+	return Array.isArray(value) && value.every((item) => isNumber(item));
+};
+
+const isValidDateString = function(value: unknown): value is string {
+	return isString(value) && !Number.isNaN(new Date(value).getTime());
+};
+
+const isCursus42 = function(value: unknown): value is Cursus42 {
+	return isRecord(value)
+		&& isNumber(value.id)
+		&& isString(value.name)
+		&& isString(value.slug);
+};
+
+const isProject42 = function(value: unknown): value is Project42 {
+	return isRecord(value)
+		&& isNumber(value.id)
+		&& isString(value.name)
+		&& isString(value.slug);
+};
+
+const isEvent42 = function(value: unknown): value is Event42 {
+	return isRecord(value)
+		&& isNumber(value.id)
+		&& isString(value.name)
+		&& isString(value.description)
+		&& (value.location === null || isString(value.location))
+		&& isString(value.kind)
+		&& (value.max_people === null || isNumber(value.max_people))
+		&& isNumber(value.nbr_subscribers)
+		&& isValidDateString(value.begin_at)
+		&& isValidDateString(value.end_at)
+		&& isNumberArray(value.campus_ids)
+		&& isNumberArray(value.cursus_ids)
+		&& isValidDateString(value.created_at)
+		&& isValidDateString(value.updated_at);
+};
+
+const isExam42 = function(value: unknown): value is Exam42 {
+	return isRecord(value)
+		&& isNumber(value.id)
+		&& isString(value.name)
+		&& isStringArray(value.ip_range)
+		&& isValidDateString(value.begin_at)
+		&& isValidDateString(value.end_at)
+		&& (value.location === null || isString(value.location))
+		&& (value.max_people === null || isNumber(value.max_people))
+		&& isNumber(value.nbr_subscribers)
+		&& isValidDateString(value.created_at)
+		&& isValidDateString(value.updated_at)
+		&& Array.isArray(value.cursus)
+		&& value.cursus.every((cursus) => isCursus42(cursus))
+		&& Array.isArray(value.projects)
+		&& value.projects.every((project) => isProject42(project));
+};
+
+const isExamForHost = function(value: unknown): value is ExamForHost {
+	return isRecord(value)
+		&& isNumber(value.id)
+		&& isString(value.name)
+		&& isValidDateString(value.begin_at)
+		&& isValidDateString(value.end_at);
+};
+
+const parseDataJsonContract = function(value: unknown): { data: DataJson | null; errors: string[] } {
+	if (!isRecord(value)) {
+		return { data: null, errors: ['Payload is not an object'] };
+	}
+
+	const errors: string[] = [];
+
+	if (!isString(value.hostname)) {
+		errors.push('hostname must be a string');
+	}
+	if (!Array.isArray(value.events) || !value.events.every((event) => isEvent42(event))) {
+		errors.push('events must be an array of valid events');
+	}
+	if (!Array.isArray(value.exams) || !value.exams.every((exam) => isExam42(exam))) {
+		errors.push('exams must be an array of valid exams');
+	}
+	if (!Array.isArray(value.exams_for_host) || !value.exams_for_host.every((exam) => isExamForHost(exam))) {
+		errors.push('exams_for_host must be an array of valid exam entries');
+	}
+	if (!isValidDateString(value.fetch_time)) {
+		errors.push('fetch_time must be a valid date string');
+	}
+	if ('degraded' in value && value.degraded !== undefined && typeof value.degraded !== 'boolean') {
+		errors.push('degraded must be a boolean when provided');
+	}
+	if ('warnings' in value && value.warnings !== undefined && !isStringArray(value.warnings)) {
+		errors.push('warnings must be a string array when provided');
+	}
+
+	const message = isString(value.message) ? value.message : '';
+	const degraded = typeof value.degraded === 'boolean' ? value.degraded : undefined;
+	const warnings = isStringArray(value.warnings) ? value.warnings : undefined;
+
+	if (errors.length > 0) {
+		return { data: null, errors };
+	}
+
+	return {
+		data: {
+			hostname: value.hostname as string,
+			events: value.events as Event42[],
+			exams: value.exams as Exam42[],
+			exams_for_host: value.exams_for_host as ExamForHost[],
+			fetch_time: value.fetch_time as string,
+			message,
+			degraded,
+			warnings,
+		},
+		errors: [],
+	};
+};
 
 
 export class Data {
@@ -175,17 +310,18 @@ export class Data {
 		const req = new XMLHttpRequest();
 		req.addEventListener('load', () => {
 			try {
-				const data: DataJson = JSON.parse(req.responseText);
-				console.log("Fetched data.json", data);
-				if ("error" in data) {
-					window.ui.setDebugInfo(`data.json response contains an error: ${data.error}`);
+				const parsedData: unknown = JSON.parse(req.responseText);
+				console.log("Fetched data.json", parsedData);
+				if (isRecord(parsedData) && "error" in parsedData) {
+					window.ui.setDebugInfo(`data.json response contains an error: ${String(parsedData.error)}`);
 					return;
 				}
-				// Fallback for missing message field in older versions of data.json
-				if (!("message" in data)) {
-					(data as DataJson).message = "";
+				const contract = parseDataJsonContract(parsedData);
+				if (!contract.data) {
+					window.ui.setDebugInfo(`Invalid data.json contract: ${contract.errors.join('; ')}`);
+					return;
 				}
-				this._dataJson = data;
+				this._dataJson = contract.data;
 				// Emit data change event to all listeners
 				for (const listener of this._dataChangeListeners) {
 					listener(this._dataJson);

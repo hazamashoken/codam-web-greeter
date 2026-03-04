@@ -38,6 +38,11 @@ These can be set in `.env` in addition to the required Intra variables:
 - `RATE_LIMIT_USER_IMAGE_MAX` (default: `30`): max requests per window for `/api/user/:login/.face`.
 - `READINESS_MAX_CACHE_AGE_SECONDS` (default: `3600`): readiness threshold for cached data age.
 - `INTRA_INIT_RETRY_DELAY_MS` (default: `60000`): retry interval for Intra API initialization.
+- `INTRA_REFRESH_INTERVAL_SECONDS` (default: `300`): target refresh cadence for Intra events/exams.
+- `INTRA_MAX_STALE_DATA_SECONDS` (default: `86400`): max age for serving stale cached events/exams when upstream fails.
+- `INTRA_FETCH_RETRY_COUNT` (default: `3`): retry attempts for Intra API fetches.
+- `INTRA_FETCH_RETRY_DELAY_MS` (default: `1000`): base delay between Intra fetch retries.
+- `INTRA_FETCH_RETRY_BACKOFF_FACTOR` (default: `2`): exponential retry backoff factor.
 - `API_KEY` (optional): if set, all `/api/*` routes require `X-API-Key` or `Authorization: Bearer <key>`.
 
 
@@ -50,6 +55,12 @@ Returns readiness status for the API process:
 - Intra API client initialized.
 - Cached `events` and `exams` present.
 - Cache age is below `READINESS_MAX_CACHE_AGE_SECONDS`.
+
+### `/metrics`
+Returns in-memory metrics for:
+- endpoint latency/error counts
+- cache hit/miss/refresh/stale-serve counters
+- upstream failure/success tracking
 
 ### `/api/config/:hostname?`
 Request data to be displayed by the greeter for the given hostname. If no hostname is given, the IP address from the request is parsed and used instead (if possible).

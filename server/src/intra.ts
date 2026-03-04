@@ -3,6 +3,9 @@ import { Event42, Exam42 } from './interfaces.js';
 
 const CAMPUS_ID = process.env.INTRA_CAMPUS_ID;
 const FETCH_EVENTS_UPCOMING_DAYS = 21; // 3 weeks
+const INTRA_FETCH_RETRY_COUNT = Number(process.env.INTRA_FETCH_RETRY_COUNT ?? '3');
+const INTRA_FETCH_RETRY_DELAY_MS = Number(process.env.INTRA_FETCH_RETRY_DELAY_MS ?? '1000');
+const INTRA_FETCH_RETRY_BACKOFF_FACTOR = Number(process.env.INTRA_FETCH_RETRY_BACKOFF_FACTOR ?? '2');
 const EVENT_KINDS_FILTER = [
 	'rush', 'piscine', 'partnership', // pedago
 	'conference', 'meet_up', 'event', // event
@@ -11,34 +14,72 @@ const EVENT_KINDS_FILTER = [
 	'extern', // other
 ];
 
-const fetchAll42 = async function(api: Fast42, path: string, params: { [key: string]: string } = {}): Promise<any[]> {
-	return new Promise(async (resolve, reject) => {
-		try {
-			const pages = await api.getAllPages(path, params);
-			console.log(`Retrieving API items: ${pages.length} pages for path ${path}`);
+const normalizePositiveNumber = function(value: number, fallback: number): number {
+	if (!Number.isFinite(value) || value <= 0) {
+		return fallback;
+	}
+	return value;
+};
 
-			// Fetch all pages
-			let i = 0;
-			const pageItems = await Promise.all(pages.map(async (page) => {
-				console.log(`Fetching page ${++i}/${pages.length}`);
-				const p = await page;
-				if (p.status == 429) {
-					throw new Error('Intra API rate limit exceeded');
-				}
-				if (p.ok) {
-					const data = await p.json();
-					return data;
-				}
-				else {
-					throw new Error(`Intra API error: ${p.status} ${p.statusText}`);
-				}
-			}));
-			return resolve(pageItems.flat());
+const RETRY_COUNT_NORMALIZED = Math.floor(normalizePositiveNumber(INTRA_FETCH_RETRY_COUNT, 3));
+const RETRY_DELAY_MS_NORMALIZED = Math.floor(normalizePositiveNumber(INTRA_FETCH_RETRY_DELAY_MS, 1000));
+const RETRY_BACKOFF_NORMALIZED = normalizePositiveNumber(INTRA_FETCH_RETRY_BACKOFF_FACTOR, 2);
+
+const getErrorMessage = function(err: unknown): string {
+	if (err instanceof Error) {
+		return err.message;
+	}
+	return String(err);
+};
+
+const sleep = async function(ms: number): Promise<void> {
+	await new Promise((resolve) => setTimeout(resolve, ms));
+};
+
+const withRetry = async function<T>(operationName: string, operation: () => Promise<T>): Promise<T> {
+	const maxAttempts = Math.max(1, RETRY_COUNT_NORMALIZED);
+	let attempt = 0;
+	let retryDelayMs = RETRY_DELAY_MS_NORMALIZED;
+	let lastError: unknown;
+
+	while (attempt < maxAttempts) {
+		attempt += 1;
+		try {
+			return await operation();
 		}
 		catch (err) {
-			return reject(err);
+			lastError = err;
+			if (attempt >= maxAttempts) {
+				break;
+			}
+			console.warn(`[intra] ${operationName} attempt ${attempt}/${maxAttempts} failed, retrying in ${retryDelayMs}ms: ${getErrorMessage(err)}`);
+			await sleep(retryDelayMs);
+			retryDelayMs = Math.max(1, Math.floor(retryDelayMs * RETRY_BACKOFF_NORMALIZED));
 		}
-	});
+	}
+
+	throw new Error(`[intra] ${operationName} failed after ${maxAttempts} attempts: ${getErrorMessage(lastError)}`);
+};
+
+const fetchAll42 = async function(api: Fast42, path: string, params: { [key: string]: string } = {}): Promise<any[]> {
+	const pages = await api.getAllPages(path, params);
+	console.log(`Retrieving API items: ${pages.length} pages for path ${path}`);
+
+	// Fetch all pages
+	let i = 0;
+	const pageItems = await Promise.all(pages.map(async (page) => {
+		console.log(`Fetching page ${++i}/${pages.length}`);
+		const p = await page;
+		if (p.status === 429) {
+			throw new Error('Intra API rate limit exceeded');
+		}
+		if (p.ok) {
+			const data = await p.json();
+			return data;
+		}
+		throw new Error(`Intra API error: ${p.status} ${p.statusText}`);
+	}));
+	return pageItems.flat();
 };
 
 const getEventDateRange = function(): string {
@@ -63,7 +104,9 @@ const filterExamOrEventOnDate = function(items: Exam42[] | Event42[]) {
 export const fetchEvents = async function(api: Fast42): Promise<Event42[]> {
 	try {
 		const range = getEventDateRange();
-		const intraEvents = await fetchAll42(api, `/campus/${CAMPUS_ID}/events`, { 'range[end_at]': range, 'filter[kind]': EVENT_KINDS_FILTER.join(',') });
+		const intraEvents = await withRetry('fetchEvents', () =>
+			fetchAll42(api, `/campus/${CAMPUS_ID}/events`, { 'range[end_at]': range, 'filter[kind]': EVENT_KINDS_FILTER.join(',') })
+		);
 
 		// Convert to Event42 objects
 		const events42: Event42[] = intraEvents.map((item) => {
@@ -73,7 +116,7 @@ export const fetchEvents = async function(api: Fast42): Promise<Event42[]> {
 		// Remove events too far into the future
 		const filteredEvents = filterExamOrEventOnDate(events42) as Event42[];
 
-		if (filteredEvents.length == 0) {
+		if (filteredEvents.length === 0) {
 			console.log("No events found");
 			return [];
 		}
@@ -85,15 +128,16 @@ export const fetchEvents = async function(api: Fast42): Promise<Event42[]> {
 		return filteredEvents;
 	}
 	catch(err) {
-		console.log(err);
-		return [];
+		throw new Error(`Failed fetching events: ${getErrorMessage(err)}`);
 	}
 };
 
 export const fetchExams = async function(api: Fast42): Promise<Exam42[]> {
 	try {
 		const range = getEventDateRange();
-		const intraExams = await fetchAll42(api, `/campus/${CAMPUS_ID}/exams`, { 'range[end_at]': range, 'filter[visible]': 'true' });
+		const intraExams = await withRetry('fetchExams', () =>
+			fetchAll42(api, `/campus/${CAMPUS_ID}/exams`, { 'range[end_at]': range, 'filter[visible]': 'true' })
+		);
 
 		// Convert to Exam42 objects
 		const exams42: Exam42[] = intraExams.map((item) => {
@@ -103,7 +147,7 @@ export const fetchExams = async function(api: Fast42): Promise<Exam42[]> {
 		// Remove exams too far into the future
 		const filteredExams = filterExamOrEventOnDate(exams42) as Exam42[];
 
-		if (filteredExams.length == 0) {
+		if (filteredExams.length === 0) {
 			console.log("No exams found");
 			return [];
 		}
@@ -115,43 +159,39 @@ export const fetchExams = async function(api: Fast42): Promise<Exam42[]> {
 		return filteredExams;
 	}
 	catch(err) {
-		console.log(err);
-		return [];
+		throw new Error(`Failed fetching exams: ${getErrorMessage(err)}`);
 	}
 };
 
-export const fetchUserImage = async function(api: Fast42, login: string): Promise<string> {
+export const fetchUserImage = async function(api: Fast42, login: string): Promise<string | null> {
 	try {
-		const req = await api.get(`/users/`, {
-			'filter[login]': login, // Filtering instead of querying for the specific user is faster
+		const req = await withRetry('fetchUserImage', async () => {
+			const userRequest = await api.get(`/users/`, {
+				'filter[login]': login, // Filtering instead of querying for the specific user is faster
+			});
+			if (userRequest.status === 429) {
+				throw new Error('Intra API rate limit exceeded');
+			}
+			if (!userRequest.ok) {
+				throw new Error(`Intra API error: ${userRequest.status} ${userRequest.statusText}`);
+			}
+			return userRequest;
 		});
-		if (req.status == 429) {
-			throw new Error('Intra API rate limit exceeded');
+
+		const data = await req.json();
+		if (data.length === 0) {
+			return null;
 		}
-		if (req.ok) {
-			const data = await req.json();
-			if (data.length == 0) {
-				throw new Error('User not found on Intra');
-			}
-			const user = data[0];
-			if (user.image) {
-				if (user.image.versions && user.image.versions.large) {
-					return user.image.versions.large;
-				}
-				else {
-					return user.image.link; // This one should always exist
-				}
-			}
-			else {
-				throw new Error('User has no image set on Intra');
-			}
+		const user = data[0];
+		if (!user.image) {
+			return null;
 		}
-		else {
-			throw new Error(`Intra API error: ${req.status} ${req.statusText}`);
+		if (user.image.versions && user.image.versions.large) {
+			return user.image.versions.large;
 		}
+		return user.image.link ?? null;
 	}
 	catch (err) {
-		console.log(`Failed fetching user image for ${login}: ${err}`);
-		return '';
+		throw new Error(`Failed fetching user image for ${login}: ${getErrorMessage(err)}`);
 	}
 }
