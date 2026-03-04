@@ -75,6 +75,11 @@ sudo systemctl restart lightdm
 ## Development
 
 ### Client
+Install dependencies once:
+```bash
+npm ci
+```
+
 Use the provided Makefile to build the theme:
 ```bash
 make

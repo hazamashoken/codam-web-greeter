@@ -14,20 +14,22 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [22.x]
 
     steps:
     - uses: actions/checkout@v4
 
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: server/package-lock.json
 
     - name: Install npm dependencies
       working-directory: server
       run: |
-        npm install
+        npm ci
 
     - name: Build codam-web-greeter server
       working-directory: server
@@ -54,4 +56,5 @@ jobs:
         npm run start &
         timeout 3m bash -c 'until nc -w 10 127.0.0.1 3000; do sleep 1; done'
         netstat -tulpn
+        curl -L http://localhost:3000/health/live --insecure --verbose --fail
         curl -L http://localhost:3000/ --insecure --verbose --fail

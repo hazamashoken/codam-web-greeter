@@ -2,9 +2,10 @@
   "name": "codam-web-greeter-server",
   "version": "1.3.6",
   "description": "Back-end server for the codam-web-greeter",
-  "main": "src/server.js",
+  "main": "build/server.js",
   "scripts": {
     "build": "tsc",
+    "check": "npm run build",
     "start": "node build/server.js"
   },
   "repository": {

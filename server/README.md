@@ -24,7 +24,7 @@ The back-end server provides data for the greeter to display, such as events and
 ```json
 {}
 ```
-4. Run `npm install` in this directory
+4. Run `npm ci` in this directory
 5. Run `npm run build` in this directory
 6. Run `npm run start` in this directory
 7. The server should now be running on port 3000

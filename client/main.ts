@@ -10,7 +10,6 @@ declare global {
 		auth: Authenticator;
 		ui: UI;
 		idler: Idler;
-		debugKeys: boolean;
 
 		sleep(ms: number): Promise<void>;
 		restartComputer(): boolean;
@@ -29,11 +28,15 @@ async function sleep(ms: number): Promise<void> {
 }
 window.sleep = sleep;
 
+let debugLog: (message: string) => void = (message: string) => {
+	console.debug(message);
+};
+
 // use with window.restartComputer(); to restart the computer
 window.restartComputer = () => {
 	try {
 		if (!window.lightdm?.can_restart) {
-			window.ui.setDebugInfo("Rebooting failed: lightdm.can_restart is false");
+			debugLog("Rebooting failed: lightdm.can_restart is false");
 			return false;
 		}
 
@@ -41,7 +44,7 @@ window.restartComputer = () => {
 		return true;
 	}
 	catch (err) {
-		window.ui.setDebugInfo(`Rebooting failed: ${err}`);
+		debugLog(`Rebooting failed: ${err}`);
 		return false;
 	}
 };
@@ -49,14 +52,14 @@ window.restartComputer = () => {
 window.brightness = {
 	decrease: () => {
 		if (!window.lightdm?.can_access_brightness) {
-			window.ui.setDebugInfo('Brightness control failed: lightdm.can_access_brightness is false');
+			debugLog('Brightness control failed: lightdm.can_access_brightness is false');
 			return;
 		}
 		window.lightdm?.brightness_decrease(10);
 	},
 	increase: () => {
 		if (!window.lightdm?.can_access_brightness) {
-			window.ui.setDebugInfo('Brightness control failed: lightdm.can_access_brightness is false');
+			debugLog('Brightness control failed: lightdm.can_access_brightness is false');
 			return;
 		}
 		window.lightdm?.brightness_increase(10);
@@ -65,39 +68,50 @@ window.brightness = {
 
 async function initGreeter(): Promise<void> {
 	// Initialize local classes
-	window.data = new Data();
-	window.auth = new Authenticator();
-	window.ui = new UI(window.data, window.auth);
-	window.idler = new Idler(window.ui.isLockScreen);
-	window.debugKeys = false;
+	const data = new Data();
+	const auth = new Authenticator();
+	const ui = new UI(data, auth);
+	const idler = new Idler(ui.isLockScreen);
+	let debugKeys = false;
+
+	// Keep global references for legacy modules that still read from window.
+	window.data = data;
+	window.auth = auth;
+	window.ui = ui;
+	window.idler = idler;
+	debugLog = (message: string) => ui.setDebugInfo(message);
+
+	// Prefer explicit handler injection instead of reading window.ui from inside these classes.
+	data.setDebugHandler((message: string) => ui.setDebugInfo(message));
+	auth.setDebugHandler((message: string) => ui.setDebugInfo(message));
 
 	// Add reboot keybind to reboot on ctrl+alt+del
 	// only when the lock screen is not shown
 	document.addEventListener('keydown', (e) => {
 		const isPasswordInput = (document.activeElement?.tagName === 'INPUT' && document.activeElement?.getAttribute('type') === 'password');
-		if (window.debugKeys && !isPasswordInput) {
-			window.ui.setDebugInfo(`Key pressed: ${e.code} (${e.key})${e.ctrlKey ? ' + Ctrl' : ''}${e.altKey ? ' + Alt' : ''}${e.shiftKey ? ' + Shift' : ''}${e.metaKey ? ' + Meta' : ''}`);
+		if (debugKeys && !isPasswordInput) {
+			ui.setDebugInfo(`Key pressed: ${e.code} (${e.key})${e.ctrlKey ? ' + Ctrl' : ''}${e.altKey ? ' + Alt' : ''}${e.shiftKey ? ' + Shift' : ''}${e.metaKey ? ' + Meta' : ''}`);
 		}
 		if (e.ctrlKey && e.altKey) { // Special keybinds
 			switch (e.key) {
 				case 'Delete': // Ctrl + Alt + Delete = reboot computer
-					if (window.debugKeys) {
-						window.ui.setDebugInfo('Reboot requested through LightDM');
+					if (debugKeys) {
+						ui.setDebugInfo('Reboot requested through LightDM');
 						window.restartComputer();
 					}
 					break;
 				case 'e': // Ctrl + Alt + E = override exam mode
-					if (window.debugKeys) {
-						window.ui.setDebugInfo('Exam mode override enabled');
-						window.ui.overrideExamMode();
+					if (debugKeys) {
+						ui.setDebugInfo('Exam mode override enabled');
+						ui.overrideExamMode();
 					}
 					break;
 				case 'd': // Ctrl + Alt + D = debug keys: show pressed key in debug info
-					window.debugKeys = (window.debugKeys) ? false : true;
-					window.ui.setDebugInfo(`Debug keys: ${(window.debugKeys ? 'enabled' : 'disabled')}`);
+					debugKeys = !debugKeys;
+					ui.setDebugInfo(`Debug keys: ${(debugKeys ? 'enabled' : 'disabled')}`);
 					break;
 				case 'l':
-					if (window.debugKeys) {
+					if (debugKeys) {
 						// Todo add a force logout 
 					}
 					return;

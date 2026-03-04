@@ -24,11 +24,13 @@ endif
 all: build
 
 npm-install:
-	npm install
+	npm ci
 
-build: clean static/greeter.css npm-install copy-files
+build: clean static/greeter.css copy-files
 	npm run build
 	npm run bundle
+
+bootstrap: npm-install
 
 copy-files:
 ifeq ($(CLIENT_THEME), light)
@@ -94,4 +96,4 @@ server-stop:
 	cd $(ROOT_DIR)/server
 	docker compose -f "$(ROOT_DIR)/server/docker-compose.yaml" down
 
-.PHONY: all npm-install build copy-files install uninstall re use-light-theme use-boxed-theme server update-server-version server-stop clean
+.PHONY: all npm-install bootstrap build copy-files install uninstall re use-light-theme use-boxed-theme server update-server-version server-stop clean

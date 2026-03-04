@@ -23,9 +23,11 @@ export class UI {
 	private _logo: HTMLImageElement;
 	private _message: HTMLElement;
 	private _scalingFactor: number = 1;
+	private _data: Data;
 
 	public constructor(data: Data, auth: Authenticator) {
-		this._infoBars = new InfoBarsUI();
+		this._data = data;
+		this._infoBars = new InfoBarsUI(data);
 		this._logo = document.getElementById('logo') as HTMLImageElement;
 		this._message = document.getElementById('message') as HTMLElement;
 
@@ -76,7 +78,7 @@ export class UI {
 		}
 
 		this._wallpaper = new WallpaperUI(this._isLockScreen);
-		this._calendar = new CalendarUI(data);
+		this._calendar = new CalendarUI(data, () => this._scalingFactor);
 	}
 
 	public get isLockScreen(): boolean {
@@ -124,14 +126,14 @@ export class UI {
 			return false;
 		}
 
-		if (window.data.dataJson === undefined) { // If no data is available, show the regular login screen
+		if (this._data.dataJson === undefined) { // If no data is available, show the regular login screen
 			this._examModeScreen?.hideForm();
 			this._loginScreen?.showForm();
 			return false;
 		}
 
 		// Get exams that are starting soon
-		const examsForHost: ExamForHost[] = window.data.dataJson.exams_for_host;
+		const examsForHost: ExamForHost[] = this._data.dataJson.exams_for_host;
 		const ongoingExams = examsForHost.filter((exam) => {
 			const now = new Date();
 			const beginAt = new Date(exam.begin_at);

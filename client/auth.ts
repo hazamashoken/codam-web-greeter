@@ -38,6 +38,9 @@ export interface AuthenticatorEvents {
 export class Authenticator {
 	private _authenticating: boolean = false;
 	private _authenticated: boolean = false;
+	private _debugHandler: ((message: string) => void) = (message: string) => {
+		console.debug(message);
+	};
 
 	private _authEvents: AuthenticatorEvents | null = null;
 
@@ -67,12 +70,12 @@ export class Authenticator {
 						lightdm.respond(this._password);
 						break;
 					default:
-						window.ui.setDebugInfo(`Unknown lightDM prompt type: ${type}`);
+						this._debugHandler(`Unknown lightDM prompt type: ${type}`);
 						break;
 				}
 			}
 			catch (err) {
-				window.ui.setDebugInfo(String(err));
+				this._debugHandler(String(err));
 				if (this._authEvents) {
 					this._authEvents.errorMessage(String(err));
 				}
@@ -90,18 +93,18 @@ export class Authenticator {
 						}
 						break;
 					case LightDMMessageType.Error:
-						window.ui.setDebugInfo(`LightDM error message: ${message}`);
+						this._debugHandler(`LightDM error message: ${message}`);
 						if (this._authEvents) {
 							this._authEvents.errorMessage(message);
 						}
 						break;
 					default:
-						window.ui.setDebugInfo(`Unknown lightDM message type: ${type}, message: ${message}`);
+						this._debugHandler(`Unknown lightDM message type: ${type}, message: ${message}`);
 						break;
 				}
 			}
 			catch (err) {
-				window.ui.setDebugInfo(String(err));
+				this._debugHandler(String(err));
 				if (this._authEvents) {
 					this._authEvents.errorMessage(String(err));
 				}
@@ -134,7 +137,7 @@ export class Authenticator {
 			}
 			catch (err) {
 				this._authenticating = false;
-				window.ui.setDebugInfo(String(err));
+				this._debugHandler(String(err));
 				if (this._authEvents) {
 					this._authEvents.errorMessage(String(err));
 				}
@@ -175,6 +178,12 @@ export class Authenticator {
 		this._authEvents = authEvents;
 	}
 
+	public setDebugHandler(debugHandler: ((message: string) => void) | null): void {
+		this._debugHandler = debugHandler ?? ((message: string) => {
+			console.debug(message);
+		});
+	}
+
 	private _clearAuth(): void {
 		this._username = "";
 		this._password = "";
@@ -195,7 +204,7 @@ export class Authenticator {
 			lightdm.authenticate(this._username); // provide username to skip the username prompt
 		}
 		catch (err) {
-			window.ui.setDebugInfo(String(err));
+			this._debugHandler(String(err));
 			if (this._authEvents) {
 				this._authEvents.errorMessage(String(err));
 			}
@@ -213,12 +222,12 @@ export class Authenticator {
 		this._password = password.substring(0, Authenticator.MAX_LEN_PASSWORD); // do not trim password as it could contain spaces at the beginning or end
 
 		if (this._authenticating || this._authenticated) {
-			window.ui.setDebugInfo("login() was called while already authenticating or authenticated");
+			this._debugHandler("login() was called while already authenticating or authenticated");
 			return;
 		}
 
 		if (this._username === "" || this._password === "") {
-			window.ui.setDebugInfo("login() was called while username or password is empty");
+			this._debugHandler("login() was called while username or password is empty");
 			return;
 		}
 

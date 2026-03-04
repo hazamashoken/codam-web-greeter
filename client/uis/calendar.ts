@@ -4,8 +4,12 @@ import { UI } from "../ui";
 
 export class CalendarUI {
 	private _calendar: HTMLDivElement;
+	private _dataHolder: Data;
+	private _getScalingFactor: () => number;
 
-	public constructor(dataHolder: Data) {
+	public constructor(dataHolder: Data, getScalingFactor: () => number) {
+		this._dataHolder = dataHolder;
+		this._getScalingFactor = getScalingFactor;
 		this._calendar = document.getElementById('intra-calendar') as HTMLDivElement;
 		this.populateCalendar();
 		dataHolder.addDataChangeListener(this.populateCalendar.bind(this));
@@ -54,12 +58,13 @@ export class CalendarUI {
 	 * This function checks if there is still enough space on the screen to fit one more event.
 	 */
 	private _eventFitsOnScreen(eventElement: HTMLDivElement | undefined = undefined): boolean {
+		const scalingFactor = this._getScalingFactor();
 		// Get required input
 		const availableWindowHeight = window.innerHeight;
-		const infoBarHeight = parseInt(getComputedStyle(this._calendar).getPropertyValue('--header-footer-height')) * window.ui.scalingFactor;
-		const calendarHeight = this._calendar.clientHeight * window.ui.scalingFactor;
-		const eventHeight = 78 * window.ui.scalingFactor; // Assume every event takes up 78 pixels * UI scaling factor
-		const eventMargin = parseInt(UI.getPadding(this._calendar)) * window.ui.scalingFactor;
+		const infoBarHeight = parseInt(getComputedStyle(this._calendar).getPropertyValue('--header-footer-height')) * scalingFactor;
+		const calendarHeight = this._calendar.clientHeight * scalingFactor;
+		const eventHeight = 78 * scalingFactor; // Assume every event takes up 78 pixels * UI scaling factor
+		const eventMargin = parseInt(UI.getPadding(this._calendar)) * scalingFactor;
 
 		// Calculate how much space is needed for the event
 		const requiredSpace = eventHeight + eventMargin;
@@ -74,13 +79,13 @@ export class CalendarUI {
 			"eventMargin", eventMargin,
 			"requiredSpace", requiredSpace,
 			"spaceLeft", spaceLeft,
-			"scalingFactor", window.ui.scalingFactor
+			"scalingFactor", scalingFactor
 		);
 
 		return requiredSpace < spaceLeft;
 	}
 
-	private populateCalendar(dataJSON: DataJson | undefined = window.data.dataJson): void {
+	private populateCalendar(dataJSON: DataJson | undefined = this._dataHolder.dataJson): void {
 		if (dataJSON === undefined) {
 			this._destroyAllEvents();
 			return;

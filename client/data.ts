@@ -248,6 +248,9 @@ export class Data {
 	private _dataJsonFetchInterval: number = 60 * 1000; // 1 minute
 	private _dataJson: DataJson | undefined;
 	private _dataChangeListeners: ((dataJson: DataJson | undefined) => void)[] = [];
+	private _debugHandler: ((message: string) => void) = (message: string) => {
+		console.debug(message);
+	};
 
 	constructor() {
 		// Get version from package.json
@@ -303,6 +306,12 @@ export class Data {
 		return this._dataJson;
 	}
 
+	public setDebugHandler(debugHandler: ((message: string) => void) | null): void {
+		this._debugHandler = debugHandler ?? ((message: string) => {
+			console.debug(message);
+		});
+	}
+
 	private _refetchDataJson(): void {
 		// Using XMLHttpRequest to fetch data.json instead of fetch API
 		// because while nody-greeter supports fetch, web-greeter does not.
@@ -310,31 +319,29 @@ export class Data {
 		const req = new XMLHttpRequest();
 		req.addEventListener('load', () => {
 			try {
-				const parsedData: unknown = JSON.parse(req.responseText);
-				console.log("Fetched data.json", parsedData);
-				if (isRecord(parsedData) && "error" in parsedData) {
-					window.ui.setDebugInfo(`data.json response contains an error: ${String(parsedData.error)}`);
-					return;
-				}
-				const contract = parseDataJsonContract(parsedData);
-				if (!contract.data) {
-					window.ui.setDebugInfo(`Invalid data.json contract: ${contract.errors.join('; ')}`);
-					return;
-				}
+					const parsedData: unknown = JSON.parse(req.responseText);
+					console.log("Fetched data.json", parsedData);
+					if (isRecord(parsedData) && "error" in parsedData) {
+						this._debugHandler(`data.json response contains an error: ${String(parsedData.error)}`);
+						return;
+					}
+					const contract = parseDataJsonContract(parsedData);
+					if (!contract.data) {
+						this._debugHandler(`Invalid data.json contract: ${contract.errors.join('; ')}`);
+						return;
+					}
 				this._dataJson = contract.data;
 				// Emit data change event to all listeners
 				for (const listener of this._dataChangeListeners) {
 					listener(this._dataJson);
 				}
-			} catch (err) {
-				window.ui.setDebugInfo(`Failed to parse data.json: ${err}`);
-			}
-		});
-		req.addEventListener('error', (err) => {
-			if (window.ui) {
-				window.ui.setDebugInfo(`Error fetching data.json: ${err}`);
-			}
-		});
+				} catch (err) {
+					this._debugHandler(`Failed to parse data.json: ${err}`);
+				}
+			});
+			req.addEventListener('error', (err) => {
+				this._debugHandler(`Error fetching data.json: ${err}`);
+			});
 		req.open('GET', PATH_DATA_JSON);
 		req.send();
 	}

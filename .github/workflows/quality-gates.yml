@@ -1,0 +1,57 @@
+name: Quality Gates
+
+on:
+  push:
+    branches: [ "main" ]
+    tags-ignore:
+      - 'v0.*'
+      - 'v1.*'
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  checks:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js LTS
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22.x'
+        cache: 'npm'
+
+    - name: Install root dependencies
+      run: npm ci
+
+    - name: Install server dependencies
+      working-directory: server
+      run: npm ci
+
+    - name: Build client TypeScript
+      run: npm run build
+
+    - name: Build production bundle
+      run: npm run bundle
+
+    - name: Build server TypeScript
+      working-directory: server
+      run: npm run build
+
+    - name: Validate shell scripts syntax
+      run: |
+        bash -n systemd/system/*.sh
+        bash -n systemd/user/*.sh
+
+  docker-build-check:
+    runs-on: ubuntu-22.04
+    needs: checks
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build server image
+      run: docker build -f server/dockerfile server

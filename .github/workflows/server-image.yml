@@ -25,19 +25,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 'lts/*'
-
-    - name: Install Typescript
-      run: npm install -g typescript
-      working-directory: server
-
-    - name: Install dependencies
-      run: npm install
-      working-directory: server
-
     - name: Log in to container registry
       uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b # v2.0.0
       with:

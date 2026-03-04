@@ -1,3 +1,5 @@
+import { Data } from "../data";
+
 export interface UIInfoElements {
 	hostname: HTMLSpanElement;
 	version: HTMLSpanElement;
@@ -9,8 +11,10 @@ export interface UIInfoElements {
 
 export class InfoBarsUI {
 	private _infoElements: UIInfoElements;
+	private _data: Data;
 
-	public constructor() {
+	public constructor(data: Data) {
+		this._data = data;
 		this._infoElements = {
 			hostname: document.getElementById('info-hostname') as HTMLSpanElement,
 			version: document.getElementById('info-version') as HTMLSpanElement,
@@ -36,10 +40,10 @@ export class InfoBarsUI {
 		});
 
 		// Populate version info
-		this._infoElements.version.innerText = window.data.pkgName + " v" + window.data.pkgVersion;
+		this._infoElements.version.innerText = this._data.pkgName + " v" + this._data.pkgVersion;
 
 		// Populate hostname info
-		this._infoElements.hostname.innerText = window.data.hostname;
+		this._infoElements.hostname.innerText = this._data.hostname;
 
 		// Populate clock element
 		this._updateClock();
