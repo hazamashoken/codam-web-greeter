@@ -1,66 +1,125 @@
 #!/bin/bash
+set -euo pipefail
 
-# Exit on error
-set -e
+SKIPPED_USERS="lightdm exam checkin event"
+LOCK_STATE_SCRIPT="/usr/share/codam/codam-web-greeter-lock-state.sh"
+RUNTIME_DIR="/run/codam-web-greeter"
+SESSION_CACHE_DIR="$RUNTIME_DIR/session-cache"
+MAX_IDLE_SCREENLOCK_TIME_MINUTES=7
+MAX_IDLE_SCREENLOCK_TIME=$((MAX_IDLE_SCREENLOCK_TIME_MINUTES * 60 * 1000))
 
-# Get logged in users
-WHO_OUTPUT=$(/usr/bin/who)
+is_uint() {
+	[[ "$1" =~ ^[0-9]+$ ]]
+}
 
-# Loop through output
-while IFS= read -r line; do
-	# Get username
-	USERNAME=$(echo "$line" | awk '{print $1}')
-	# Get display (everything between () and remove the ())
-	# Cannot use awk here to print a specific column because columns might contain spaces...
-	DISPLAY=$(echo "$line" | sed -n 's/.*(\(.*\))/\1/p')
-	# Go to next line if display does not start with :
-	if ! [[ "$DISPLAY" =~ ^: ]]; then
-		continue
+ensure_runtime_dirs() {
+	/usr/bin/mkdir -p "$SESSION_CACHE_DIR"
+	/usr/bin/chmod 0755 "$RUNTIME_DIR" "$SESSION_CACHE_DIR"
+}
+
+get_session_property() {
+	local session_id="$1"
+	local property="$2"
+	/usr/bin/loginctl show-session "$session_id" --property="$property" --value 2>/dev/null || true
+}
+
+get_current_monotonic_us() {
+	/usr/bin/awk '{ printf "%d\n", $1 * 1000000 }' /proc/uptime
+}
+
+read_idle_ms() {
+	local idle_hint="$1"
+	local idle_since_hint_us="$2"
+
+	if [ "$idle_hint" != "yes" ] || ! is_uint "$idle_since_hint_us" || [ "$idle_since_hint_us" -le 0 ] || [ "$CURRENT_MONOTONIC_US" -lt "$idle_since_hint_us" ]; then
+		/usr/bin/echo 0
+		return
 	fi
 
-	# Get idle time from X-session using sudo
-	# This time is used to determine if the session has been idle for too long (possibly without locking the screen)
-	IDLE_TIME=$(/usr/bin/sudo -u "$USERNAME" DISPLAY="$DISPLAY" /usr/bin/xprintidle)
+	/usr/bin/echo $(((CURRENT_MONOTONIC_US - idle_since_hint_us) / 1000))
+}
 
-	# Check if lock_timestamp file exists, and if so read the locked_at_timestamp
-	# This time is used to determine if the screen lock has been active for too long
-	# Sometimes xprintidle doesn't work properly when the screen is locked due to programs running in the user session in the background
-	TIME_SINCE_LOCK=$((0)) # Placeholder
-	if [ -f "/tmp/codam_web_greeter_lockscreen_timestamp_$USERNAME" ]; then
-		# Get the locked_at_timestamp from the file	
-		LOCKED_AT_TIMESTAMP=$(/usr/bin/awk '{print $1}' "/tmp/codam_web_greeter_lockscreen_timestamp_$USERNAME")
-		# Calculate the time since the session was locked
-		TIME_SINCE_LOCK=$((($(date +%s) - LOCKED_AT_TIMESTAMP) * 1000))
-	fi
+clear_stale_session_cache() {
+	local sessions="$1"
+	local file base session_id
 
+	for file in "$SESSION_CACHE_DIR"/*; do
+		[ -e "$file" ] || continue
+		base="$(/usr/bin/basename "$file")"
+		session_id="${base%%.*}"
+		is_uint "$session_id" || continue
+		if ! [[ " $sessions " =~ [[:space:]]$session_id[[:space:]] ]]; then
+			/usr/bin/rm -f "$file"
+		fi
+	done
+}
 
+main() {
+	local sessions session_id username active remote class service leader locked_hint idle_hint idle_since_hint_us idle_ms seat lock_status_file
 
-	# 42Singapore: Ad Hoc method to lockscreen idle user after 3 minutes
-	# if the screen blanks on the lock screen use '/usr/bin/dm-tool switch-to-greeter' instead: https://github.com/hazamashoken/codam-web-greeter/tree/main?tab=readme-ov-file#the-screen-blanks-on-the-lock-screen
-	# Check if session has been idle for long enough
-	MAX_IDLE_SCREENLOCK_TIME_MINUTES=$((7))
-	MAX_IDLE_SCREENLOCK_TIME=$((MAX_IDLE_SCREENLOCK_TIME_MINUTES * 60 * 1000))
-	LOCK_STATUS_FILE="/tmp/codam_web_greeter_lockscreen_status_$USERNAME"
+	ensure_runtime_dirs
+	CURRENT_MONOTONIC_US="$(get_current_monotonic_us)"
+	sessions=$(/usr/bin/loginctl list-sessions --no-legend 2>/dev/null | /usr/bin/awk '{print $1}')
+	clear_stale_session_cache " $sessions "
 
-	if [ "$IDLE_TIME" -gt "$MAX_IDLE_SCREENLOCK_TIME" ]; then
-		# Create the lock status file if it doesn't exist
-		if [ ! -f "$LOCK_STATUS_FILE" ]; then
-			echo "Session for $USERNAME has been idle for over 3 minutes (idletime $IDLE_TIME ms). Preparing to lock screen."
-			echo "pending" > "$LOCK_STATUS_FILE"
+	for session_id in $sessions; do
+		is_uint "$session_id" || continue
+
+		username="$(get_session_property "$session_id" Name)"
+		active="$(get_session_property "$session_id" Active)"
+		remote="$(get_session_property "$session_id" Remote)"
+		class="$(get_session_property "$session_id" Class)"
+		service="$(get_session_property "$session_id" Service)"
+		leader="$(get_session_property "$session_id" Leader)"
+		locked_hint="$(get_session_property "$session_id" LockedHint)"
+		idle_hint="$(get_session_property "$session_id" IdleHint)"
+		idle_since_hint_us="$(get_session_property "$session_id" IdleSinceHintMonotonic)"
+		seat="$(get_session_property "$session_id" Seat)"
+
+		[ -n "$username" ] || continue
+		is_uint "${leader:-0}" || continue
+		if [[ $SKIPPED_USERS =~ (^|[[:space:]])$username($|[[:space:]]) ]]; then
+			continue
+		fi
+		if [ "$remote" = "yes" ] || [ "$class" = "greeter" ] || [ "$service" = "lightdm" ]; then
+			continue
 		fi
 
-		# Check if the lock status file indicates "locked"
-		if [ "$(cat "$LOCK_STATUS_FILE")" != "locked" ]; then
-			echo "Locking session for $USERNAME..."
-			echo "locked" > "$LOCK_STATUS_FILE"
-			/usr/bin/dm-tool switch-to-greeter
-		fi
-	else
-		# If the idle time is not enough, remove the lock status file
-		if [ -f "$LOCK_STATUS_FILE" ]; then
-			echo "Session for $USERNAME is active again (idletime $IDLE_TIME ms). Removing lock status file."
-			rm -f "$LOCK_STATUS_FILE"
-		fi
-	fi
+		lock_status_file="$SESSION_CACHE_DIR/${session_id}.lock-status"
+		idle_ms="$(read_idle_ms "$idle_hint" "$idle_since_hint_us")"
 
-done <<< "$WHO_OUTPUT"
+		if [ "$locked_hint" = "yes" ] && [ -x "$LOCK_STATE_SCRIPT" ]; then
+			/bin/bash "$LOCK_STATE_SCRIPT" lock "$session_id" || true
+		fi
+
+		if [ "$locked_hint" != "yes" ] && [ -f "$lock_status_file" ]; then
+			/usr/bin/rm -f "$lock_status_file"
+			if [ -x "$LOCK_STATE_SCRIPT" ]; then
+				/bin/bash "$LOCK_STATE_SCRIPT" unlock "$session_id" || true
+			fi
+		fi
+
+		if [ "$active" != "yes" ] && [ "$locked_hint" != "yes" ]; then
+			continue
+		fi
+
+		if [ "$idle_ms" -gt "$MAX_IDLE_SCREENLOCK_TIME" ]; then
+			if [ ! -f "$lock_status_file" ]; then
+				/usr/bin/printf 'locked_at=%s\nseat=%s\n' "$(/usr/bin/date +%s)" "$seat" > "$lock_status_file"
+				/usr/bin/chmod 0600 "$lock_status_file"
+				if [ -x "$LOCK_STATE_SCRIPT" ]; then
+					/bin/bash "$LOCK_STATE_SCRIPT" lock "$session_id" || true
+				fi
+				/usr/bin/logger -t codam-web-greeter-lockscreen -- "action=lock-session user=$username session=$session_id seat=$seat idle_ms=$idle_ms"
+				/usr/bin/dm-tool switch-to-greeter || true
+			fi
+		elif [ -f "$lock_status_file" ] && [ "$locked_hint" != "yes" ]; then
+			/usr/bin/rm -f "$lock_status_file"
+			if [ -x "$LOCK_STATE_SCRIPT" ]; then
+				/bin/bash "$LOCK_STATE_SCRIPT" unlock "$session_id" || true
+			fi
+		fi
+	done
+}
+
+main "$@"

@@ -10,7 +10,7 @@ A greeter theme for [nody-greeter](https://github.com/JezerM/nody-greeter)/[web-
 - Prevent students from signing in with their regular account during exams
 - Customizable background image and logo
 - Greeter can be used as a lock screen when someone is already logged in (replacement for ft_lock)
-- Automatically log students out after 42 minutes of inactivity, either in-session or on the lock screen
+- Automatically enforce a 42-minute idle or locked-session timeout with a 6-hour hard session cap
 - Display user's Intra picture on the lock screen
 - Display user's Gnome wallpaper on the lock screen
 - Keybinding to gracefully reboot the computer (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>Del</kbd>)
@@ -30,7 +30,7 @@ A greeter theme for [nody-greeter](https://github.com/JezerM/nody-greeter)/[web-
 
 1. Install dependencies:
 ```bash
-sudo apt install lightdm light-locker xprintidle
+sudo apt install lightdm light-locker
 ```
 
 2. Install [nody-greeter](https://github.com/JezerM/nody-greeter/releases) or [web-greeter](https://github.com/JezerM/web-greeter/releases) by downloading the deb from the corresponding releases page. Alternatively, you can install it by compiling from source (don't forget to clone the repository with the `--recursive` flag to include its submodules).
@@ -180,14 +180,30 @@ if [ "$DISPLAY" != ":0" ]; then
 fi
 ```
 
-### Users are sometimes randomly logged out after locking their screen once
-Add the following lines to the top of the logout hook defined in */etc/lightdm/lightdm.conf*:
+### Idle enforcement configuration and logs
+The installer now writes `/etc/codam-web-greeter/idler.conf` with the idle-enforcement thresholds and rollout flags.
+
+Inspect the current runtime state and logs with:
 ```bash
-# Delete any lock_time files in /tmp (used by codam-web-greeter to know when the screen was locked
-# and when to automatically log out the user)
-/usr/bin/rm -f /tmp/codam_web_greeter_lock_timestamp_*
+journalctl -t codam-web-greeter-idler -n 100 --no-pager
+ls -R /run/codam-web-greeter
+cat /run/codam-web-greeter/offenses/<user>.state
 ```
-Make sure to add these lines above the lines added in the previous section (the check for the greeter logout event).
+
+If `auditd` is installed and `ENABLE_AUDITD=1`, install-time setup also writes `/etc/audit/rules.d/codam-web-greeter-anti-idle.rules`. Check evidence with:
+```bash
+ausearch -k codam-web-greeter-anti-idle
+```
+
+For a fuller operator workflow, see `docs/idle-enforcement.md`.
+
+### Users are sometimes randomly logged out after locking their screen once
+If this only happens during a rollout from an older version, you may still have legacy `/tmp` lock timestamp files from the old enforcement path. Remove them once during the upgrade:
+```bash
+/usr/bin/rm -f /tmp/codam_web_greeter_lock_timestamp_*
+/usr/bin/rm -f /tmp/codam_web_greeter_lockscreen_timestamp_*
+```
+Current releases store trusted lock state under `/run/codam-web-greeter/lock/` instead of `/tmp`, so this should not be part of normal steady-state operation.
 
 ### My custom wallpaper or logo doesn't show up
 Make sure the folders mentioned for branding in */etc/lightdm/web-greeter.yml* exist and contain the correct files.
