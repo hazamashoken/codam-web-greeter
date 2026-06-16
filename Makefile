@@ -26,7 +26,10 @@ all: build
 npm-install:
 	npm ci
 
-build: clean static/greeter.css copy-files
+node_modules/.bin/tsc node_modules/.bin/webpack: package.json package-lock.json
+	npm ci
+
+build: node_modules/.bin/tsc node_modules/.bin/webpack clean static/greeter.css copy-files
 	npm run build
 	npm run bundle
 
