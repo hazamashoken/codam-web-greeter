@@ -11,6 +11,32 @@ message.innerText = 'This is a test message that could have been sent by the bac
 const examModeProjects = document.getElementById('exam-mode-projects');
 examModeProjects.innerText = 'Exam Rank 00, Exam Rank 01, Exam Rank 02, non-existing debug exams';
 
+const examStartTimer = document.getElementById('exam-mode-start-timer');
+const examStartButton = document.getElementById('exam-mode-start-button');
+let examCountdownInterval = null;
+
+function clearExamCountdown() {
+	clearInterval(examCountdownInterval);
+	examCountdownInterval = null;
+}
+
+function startExamCountdown() {
+	clearExamCountdown();
+	let secondsRemaining = 30;
+	examStartButton.disabled = true;
+	examStartTimer.innerText = `You may start your exam in ${secondsRemaining} seconds.`;
+	examCountdownInterval = setInterval(() => {
+		secondsRemaining -= 1;
+		if (secondsRemaining === 0) {
+			clearExamCountdown();
+			examStartTimer.innerText = 'Click the arrow below to start your exam.';
+			examStartButton.disabled = false;
+			return;
+		}
+		examStartTimer.innerText = `You may start your exam in ${secondsRemaining} seconds.`;
+	}, 1000);
+}
+
 const lockedAgo = document.getElementById('active-user-session-locked-ago');
 lockedAgo.innerText = 'Automated logout occurs in 42 minutes';
 
@@ -38,10 +64,15 @@ function switchScreen(screenId) {
 			screen.style.display = 'none';
 		});
 
-		const selectedScreen = document.getElementById(screenId);
-		selectedScreen.style.display = 'block';
+	const selectedScreen = document.getElementById(screenId);
+	selectedScreen.style.display = 'block';
+	if (screenId === 'exam-form') {
+		startExamCountdown();
+	} else {
+		clearExamCountdown();
+	}
 
-		logo.style.display = (screenId === 'lock-form') ? 'none' : 'block';
+	logo.style.display = (screenId === 'lock-form') ? 'none' : 'block';
 
 		// Make sure the correct input field is checked
 		const selectedInput = document.getElementById(`radio-${screenId}`);

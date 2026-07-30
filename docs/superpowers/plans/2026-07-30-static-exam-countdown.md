@@ -26,11 +26,11 @@
 - Consumes: `switchScreen(screenId)`, `#exam-mode-start-timer`, and `#exam-mode-start-button`.
 - Produces: `startExamCountdown()` and `clearExamCountdown()` used only by `switchScreen`.
 
-- [ ] **Step 1: Establish the current failure**
+- [x] **Step 1: Establish the current failure**
 
 Open `static/index.html`, select **Exam mode**, and verify the text remains `Click the arrow below to start your exam.` while the arrow remains enabled.
 
-- [ ] **Step 2: Add the minimal countdown state and helpers**
+- [x] **Step 2: Add the minimal countdown state and helpers**
 
 ```js
 let examCountdownInterval = null;
@@ -60,7 +60,7 @@ function startExamCountdown() {
 
 Use `examStartTimer.innerText = \`You may start your exam in ${secondsRemaining} seconds.\`;`. When it reaches zero, clear the interval, restore `Click the arrow below to start your exam.`, and set `examStartButton.disabled = false`.
 
-- [ ] **Step 3: Connect it to screen changes**
+- [x] **Step 3: Connect it to screen changes**
 
 ```js
 if (screenId === 'exam-form') {
@@ -72,11 +72,11 @@ if (screenId === 'exam-form') {
 
 Place this in `switchScreen` after selecting the form. Set `examStartButton.disabled = true` before rendering the first countdown value.
 
-- [ ] **Step 4: Verify the preview behavior**
+- [x] **Step 4: Verify the preview behavior**
 
 Open `static/index.html`, select **Exam mode**, and confirm: the arrow is disabled immediately; the text starts at 30 seconds and decrements once per second; the arrow enables after 30 seconds; selecting Login and returning to Exam restarts at 30 seconds without duplicate updates.
 
-- [ ] **Step 5: Verify production scope and commit**
+- [x] **Step 5: Verify production scope and commit**
 
 Run:
 
