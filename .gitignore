@@ -133,6 +133,7 @@ dist
 .DS_Store
 
 # Codam specific
+.worktrees/
 dist/*
 build/*
 server/.env
