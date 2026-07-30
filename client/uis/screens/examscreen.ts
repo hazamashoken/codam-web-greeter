@@ -51,10 +51,6 @@ export class ExamModeUI extends UIScreen {
         "exam-mode-start",
       ) as HTMLSpanElement,
       examEndText: document.getElementById("exam-mode-end") as HTMLSpanElement,
-      loginInput: document.getElementById("exam-login") as HTMLInputElement,
-      passwordInput: document.getElementById(
-        "exam-password",
-      ) as HTMLInputElement,
       examStartButton: document.getElementById(
         "exam-mode-start-button",
       ) as HTMLButtonElement,
@@ -134,26 +130,11 @@ export class ExamModeUI extends UIScreen {
   protected _initForm(): void {
     const form = this._form as UIExamModeElements;
 
-    // Handle form submission so both button click and Enter key trigger the same flow.
     form.form.addEventListener("submit", (event: Event) => {
       event.preventDefault();
-      if (this._examMode) {
-        if (
-          form.loginInput.value === ExamModeUI.EXAM_USERNAME &&
-          form.passwordInput.value === ExamModeUI.EXAM_PASSWORD
-        ) {
-          this._auth.login(ExamModeUI.EXAM_USERNAME, ExamModeUI.EXAM_PASSWORD);
-        } else {
-          this._wigglePasswordInput();
-        }
+      if (this._examMode && !form.examStartButton.disabled) {
+        this._auth.login(ExamModeUI.EXAM_USERNAME, ExamModeUI.EXAM_PASSWORD);
       }
-    });
-
-    form.loginInput.addEventListener("input", () => {
-      this._enableOrDisableSubmitButton();
-    });
-    form.passwordInput.addEventListener("input", () => {
-      this._enableOrDisableSubmitButton();
     });
   }
 
@@ -263,26 +244,10 @@ export class ExamModeUI extends UIScreen {
     return buttonDisabled;
   }
 
-  protected _wigglePasswordInput(clearInput: boolean = true): void {
-    const passwordInput = (this._form as UIExamModeElements).passwordInput;
-    passwordInput.classList.add("wiggle");
-    passwordInput.addEventListener(
-      "keydown",
-      () => {
-        passwordInput.classList.remove("wiggle");
-      },
-      { once: true },
-    );
-
-    if (clearInput) {
-      passwordInput.value = "";
-      passwordInput.focus();
-      this._enableOrDisableSubmitButton();
-    }
-  }
+  protected _wigglePasswordInput(): void {}
 
   protected _getInputToFocusOn(): HTMLButtonElement | null {
-    return null; // Don't focus on any input field, there are none.
-    // There is a button we could focus on but then pressing enter/space will trigger the button even when the display is blanking
+    const form = this._form as UIExamModeElements;
+    return form.examStartButton.disabled ? null : form.examStartButton;
   }
 }

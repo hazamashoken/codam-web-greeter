@@ -28,11 +28,11 @@
 - Consumes: `UIExamModeElements.examStartButton`, `ExamModeUI.EXAM_USERNAME`, and `ExamModeUI.EXAM_PASSWORD`.
 - Produces: a submit handler that calls `Authenticator.login(username, password)` only after the button is enabled.
 
-- [ ] **Step 1: Establish the current behavior**
+- [x] **Step 1: Establish the current behavior**
 
 Confirm `static/index.html` contains `#exam-login` and `#exam-password`, and `ExamModeUI._initForm()` rejects submission unless both values are `exam`.
 
-- [ ] **Step 2: Remove the input contract**
+- [x] **Step 2: Remove the input contract**
 
 Delete these HTML elements:
 
@@ -43,7 +43,7 @@ Delete these HTML elements:
 
 Delete `loginInput` and `passwordInput` from `UIExamModeElements`, their DOM lookups, the input listeners, and `_wigglePasswordInput` from `ExamModeUI`.
 
-- [ ] **Step 3: Make the enabled button submit directly**
+- [x] **Step 3: Make the enabled button submit directly**
 
 ```ts
 form.form.addEventListener("submit", (event: Event) => {
@@ -56,7 +56,7 @@ form.form.addEventListener("submit", (event: Event) => {
 
 Change `_getInputToFocusOn()` to return `form.examStartButton` only when it is enabled; otherwise return `null`. Remove its duplicate focus call from `_enableOrDisableSubmitButton()`.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run:
 
@@ -68,7 +68,7 @@ git diff --check
 
 Expected: the TypeScript client and bundle compile; no whitespace errors; there are no references to `exam-login`, `exam-password`, `loginInput`, or `passwordInput` in exam-mode code.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add static/index.html client/uis/screen.ts client/uis/screens/examscreen.ts
