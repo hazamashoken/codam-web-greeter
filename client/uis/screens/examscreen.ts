@@ -25,7 +25,7 @@ export class ExamModeUI extends UIScreen {
     },
     authenticationFailure: () => {
       this._enableForm();
-      this._wigglePasswordInput();
+      this._enableOrDisableSubmitButton();
     },
     errorMessage: (message: string) => {
       alert(message);
